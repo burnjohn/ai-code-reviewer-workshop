@@ -1,47 +1,47 @@
 # Step 3 · Gate + GitHub Action
 
-**Goal.** Pass or fail is decided by code, never by the model's own verdict. Then the reviewer runs on every pull request in your QuickBlog fork, posts inline comments and turns the check red or green.
-**Why.** A model can say "approve" while it lists a CRITICAL finding. The gate must be deterministic, and the workflow that holds your secrets must be safe against code from a pull request.
+**Goal.** Pass or fail is decided by code, and the reviewer runs on every PR in your QuickBlog fork with inline comments and a red or green check.
+**Why.** A model can say "approve" while listing a CRITICAL finding. And the workflow that holds your secrets must be safe against code from a pull request.
 
-## Files you change
+## Files
 - `src/gate.ts`
 - `examples/quick-blog-workflow.yml`
 
 ## What to write
-**1. The gate.** `countBlockers(findings: Finding[], failOn: FailOn): number` returns how many findings have `RANK[severity] >= MIN_RANK[failOn]` (both tables are already in the file). It must not look at `verdict`. Posting the review (`toReviewPayload`, `postReview`) is already written.
+- `countBlockers(findings, failOn)`: count findings with `RANK[severity] >= MIN_RANK[failOn]` (tables are in the file). Never read `verdict`. `critical` → CRITICAL; `warning` → +WARNING; `any` → all; `never` → 0.
+- Workflow, three TODOs: top-level `permissions:` with `contents: read` and `pull-requests: write`; fork guard `if: github.event.pull_request.head.repo.full_name == github.repository` on the job; `persist-credentials: false` on both checkouts.
+- Keep: trigger `pull_request` (never `pull_request_target`), and no PR text inside `${{ }}` in `run:`.
 
-| `failOn` | blocks on |
-|---|---|
-| `critical` | CRITICAL |
-| `warning` | CRITICAL, WARNING |
-| `any` | everything |
-| `never` | nothing |
-
-**2. The workflow.** `examples/quick-blog-workflow.yml` is the file you copy into your fork. Three `TODO`s are the security rules: add the `permissions:` block (`contents: read`, `pull-requests: write`), add the fork guard (`if:` the PR's head repo equals `github.repository`), and set `persist-credentials: false` on both checkouts. The four rules are listed in the file's header; rule 1 (`pull_request`, never `pull_request_target`) and rule 4 (PR text never inside `${{ }}` in `run:`) are already followed.
-
-**3. Run it in your fork of QuickBlog.**
-1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, or the analytics branch will not exist in your fork.
-2. In the fork: **Actions** tab → enable workflows (forks start with Actions off).
-3. In the fork: **Settings → Secrets and variables → Actions** → secret `OPENROUTER_API_KEY`.
-4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the **main** branch of the fork (GitHub web UI: Add file → Create new file).
-5. Open a pull request **inside your fork**: base `main`, compare = the analytics branch your instructor names (for the current PR it is `feat/analytics-dashboard-run2`). Make sure the base repository is **your fork**, not `burnjohn/quick-blog`.
-
-## Acceptance criteria
-1. WHEN `failOn` is `critical`, the reviewer SHALL count only CRITICAL findings; for `warning` and `any` it SHALL also count lower severities; for `never` it SHALL count zero. Check: `npm test -- gate`.
-2. WHEN the workflow file is read, it SHALL follow the four security rules. Check: `npm test -- workflow`.
-3. WHEN blockers exist, the reviewer SHALL exit with code 1 and print `Gate: FAIL`; otherwise `Gate: PASS` and `0`. Check: `npm run review:mock; echo $?` (after `npm run record` has produced answers).
-4. WHEN the PR is opened in the fork, the workflow SHALL post one review with inline comments, and the check SHALL be red exactly when the log says `blockers: <n>` with n above 0. Check: the Actions tab and the PR "Files changed" tab.
+## Acceptance
+1. WHEN `failOn` is `critical`, the reviewer SHALL count only CRITICAL; for `warning` and `any` it SHALL count lower severities too; for `never`, zero.
+2. WHEN the workflow file is read, it SHALL follow the four security rules in its header.
+3. WHEN blockers exist, the reviewer SHALL print `Gate: FAIL` and exit 1.
+4. WHEN the PR is opened in your fork, the workflow SHALL post one review with inline comments, red exactly when `blockers` > 0.
 
 ## Done when
-`npm test -- gate workflow` prints `9 passed`, and the full `npm test` shows `4 failed | 41 passed` (only step 4 is left). In your fork, the `AI code review` run finishes, the PR has an `AI Review` review with at least one inline comment on a changed line, and the check colour matches the `blockers:` line of the log.
+`npm test -- gate workflow` → `9 passed` (full `npm test`: `4 failed | 41 passed`, step 4).
+
+## Steps
+1. `git stash && git checkout step-2-context`
+2. Paste the prompt into your coding agent, then `npm test -- gate workflow`.
+3. Fork `burnjohn/quick-blog` (untick "Copy the main branch only"); in the fork enable Actions and add secret `OPENROUTER_API_KEY`.
+4. Copy the workflow to `.github/workflows/ai-review.yml` on the fork's `main` (you push, not the agent).
+5. Open a PR in your fork: base `main`, compare = the analytics branch. Check the Actions tab and "Files changed".
 
 ## Prompt
 ```text
-Read specs/step-3-github-action.md and implement countBlockers() in src/gate.ts. Do not change tests.
-Then fix the three TODOs in examples/quick-blog-workflow.yml (permissions, fork guard, persist-credentials).
-Run `npm test -- gate workflow` until all 9 tests are green.
-Explain in two lines why the workflow uses `pull_request` and not `pull_request_target`.
-Do not push anything.
+Step 3 · Gate + GitHub Action. Spec: specs/step-3-github-action.md (read it first).
+Implement in src/gate.ts and examples/quick-blog-workflow.yml:
+1. gate.ts: countBlockers(findings, failOn) returns how many findings have RANK[f.severity] >= MIN_RANK[failOn]
+   (both tables exist). Do not look at the model's verdict. Remove the void/return 0 placeholder and its TODO.
+2. quick-blog-workflow.yml, replace the three TODO comments: (a) a top-level block
+   `permissions:` with `contents: read` and `pull-requests: write`; (b) on the review job
+   `if: github.event.pull_request.head.repo.full_name == github.repository`; (c) `persist-credentials: false` in the `with:`
+   of BOTH actions/checkout steps.
+   Keep `on: pull_request` (never pull_request_target) and keep PR text out of `run:` lines.
+Constraints: do not change tests or any other file. Do not push, commit or touch any remote.
+Verify: run `npm test -- gate workflow` until 9 passed. Then explain in two lines why the workflow uses pull_request and
+not pull_request_target, and show me the final workflow file.
 ```
 
 ## Start from

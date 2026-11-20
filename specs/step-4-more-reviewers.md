@@ -1,49 +1,49 @@
 # Step 4 · More reviewers
 
-**Goal.** Reviewers are configuration, not code: one Markdown file per agent, each with its own model and rules. A general, a security and a spec-conformance agent run together, and their duplicate findings are merged before the review is posted.
-**Why.** The spec-only defects have no wrong line in the diff: something required is missing. A reviewer that reasons from the specification finds them, and a narrow security agent finds what a general one skims over. Three agents also report the same bug three times, so you need a merge step, and a per-agent cost line to see what each one is worth.
+**Goal.** Three agents (general, security, spec-conformance) run together, and their duplicate findings are merged before the review is posted.
+**Why.** Spec-only defects have no wrong line in the diff: something required is missing. A reviewer that reasons from the spec finds them. Three agents also report one bug three times, so you need a merge step and a cost line per agent.
 
-## Files you change
+## Files
 - `.reviewer/agents/security.md`
 - `.reviewer/agents/spec-conformance.md`
 - `src/dedup.ts`
 
 ## What to write
-**1. Two agent files.** Start from the templates in `fixtures/agents/`. A file is frontmatter plus the system prompt; the file name (without `.md`) is the agent id:
+- Agent file = frontmatter (`name`, `model`, `fail_on`, optional `spec:`) + system prompt; the file name is the agent id. Start from `fixtures/agents/`. Body: narrow scope, a negative list, a cap on findings. The spec agent has `spec: docs/specs/analytics-dashboard-spec.md`, checks every `AC-x.y`, reports broken ones as category `spec` with the AC id first in the title, and counts missing code.
+- `dedupFindings(perAgent)`: same problem = same `file`, overlapping ranges, and `sameProblem()` true (helpers given). A merged finding keeps the text and severity of the most severe report and lists every agent once. Sort by severity, then file, then `start_line`.
+- Already wired: agents run in parallel, `AGENTS=general,security` filters, `REVIEW_MODEL` overrides models, per-agent tokens and cost are printed.
 
-```
----
-name: Security reviewer
-model: google/gemini-3.8-flash
-fail_on: critical            # never | critical | warning | any
-spec: docs/specs/analytics-dashboard-spec.md   # optional: a doc that goes into the context
----
-<system prompt>
-```
-
-A good body has a narrow scope, a **negative list** (what not to report) and a cap on findings. The spec agent must check every `AC-x.y`, report broken ones as category `spec` with the AC id at the start of the title, and count missing code as a finding.
-
-**2. `src/dedup.ts`.** Implement `dedupFindings(perAgent)`; the helpers above it (`titleSimilarity`, `sameProblem`) are written. Two findings are the same problem when they have the same file, overlapping line ranges and similar titles. A merged finding keeps the text and severity of the most severe report and lists every agent that reported it. The result is sorted by severity (high to low), then file, then `start_line`.
-
-The runner already runs every file in `.reviewer/agents/` in parallel, honours `AGENTS=general,security`, and prints per-agent tokens and cost and the deduped total. `REVIEW_MODEL=<openrouter model id>` overrides every agent's model; a `model:` line sets it per agent.
-
-## Acceptance criteria
-1. WHEN findings from two agents point at the same file, overlapping lines and a similar title, the reviewer SHALL merge them, keep the highest severity and list both agents. Check: `npm test -- dedup`.
-2. WHEN a file `<id>.md` is in `.reviewer/agents/`, the reviewer SHALL run it as an agent. Check: `npm run review:mock -- --dry-run` prints three rows: `general`, `security`, `spec-conformance`.
-3. WHEN `AGENTS=security` is set, the reviewer SHALL run only that agent. Check: `AGENTS=security npm run review:mock -- --dry-run` prints one row.
-4. WHEN the spec agent has a `spec:` line, the reviewer SHALL put that doc into the context. Check: the context log of `npm run review:mock -- --dry-run` lists `docs/specs/analytics-dashboard-spec.md`.
-5. WHEN all agents finish, the reviewer SHALL print tokens and cost per agent and a deduped total. Check: `npm run review | grep -E "^■|Findings per agent"` prints three `■` lines and `Findings per agent: … → N after dedup`, where N is at most the sum of the per-agent counts.
+## Acceptance
+1. WHEN two agents report the same file, overlapping lines and a similar title, the reviewer SHALL merge them, keep the highest severity and list both agents.
+2. WHEN a file `<id>.md` is in `.reviewer/agents/`, the reviewer SHALL run it as an agent.
+3. WHEN the spec agent has a `spec:` line, the reviewer SHALL put that doc into the context.
+4. WHEN all agents finish, the reviewer SHALL print tokens and cost per agent and a deduped total.
 
 ## Done when
-`npm test` prints `45 passed`. A run (`npm run review`, or `npm run review:mock` after `npm run record`) prints three `■` sections (`General reviewer`, `Security reviewer`, `Spec conformance`), each with `in / out` tokens and a cost, then `Findings per agent: … → N after dedup` and a `Total:` line with the summed cost.
+`npm test` → `45 passed`.
+
+## Steps
+1. `git stash && git checkout step-3-gate-action`
+2. Paste the prompt into your coding agent.
+3. `npm test`
+4. `npm run review:mock -- --dry-run`: three agents, and the spec in the context log.
+5. `npm run review` (or `npm run ui`): three `■` sections with cost, then `Findings per agent: … → N after dedup`.
 
 ## Prompt
 ```text
-Read specs/step-4-more-reviewers.md. Copy fixtures/agents/security.md and fixtures/agents/spec-conformance.md
-into .reviewer/agents/ and tighten one of them (a negative list, or a cap on findings).
-Implement dedupFindings() in src/dedup.ts. Do not change tests or any other file in src/.
-Run `npm test` until all 45 tests are green.
-Run `npm run review:mock -- --dry-run` and show me the three agents and the context log.
+Step 4 · More reviewers. Spec: specs/step-4-more-reviewers.md (read it first).
+Implement:
+1. Copy fixtures/agents/security.md and fixtures/agents/spec-conformance.md to .reviewer/agents/ (same file names).
+   Tighten security.md: keep its narrow scope and negative list, add a cap of 5 findings, worst first, and ask for the
+   attacker input. Keep spec-conformance.md's `spec: docs/specs/analytics-dashboard-spec.md` line, its AC-id-first title
+   rule and "missing code counts"; add a negative list (style, requirements the PR does not touch).
+2. src/dedup.ts: implement dedupFindings(perAgent). Walk agents in order; for each finding find an already merged one with
+   sameProblem(merged, finding) (it checks file, overlapping ranges, title similarity). No match: push { ...finding,
+   agents: [agent] }. Match: add the agent if not listed; if the new severity is higher by RANK, copy the new finding over
+   the merged one but keep the agents list. Return the list sorted by RANK desc, then file, then start_line.
+Constraints: do not change tests or any other file in src/.
+Verify: run `npm test` until 45 passed. Then run `npm run review:mock -- --dry-run` and show me the three agents and the
+context log lines for the spec.
 ```
 
 ## Start from

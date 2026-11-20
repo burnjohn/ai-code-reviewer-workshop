@@ -1,41 +1,56 @@
 # Step 2 · Repository context
 
-**Goal.** The reviewer sees more than the diff: the project's own rules, the spec the PR is built from, the full files it changes, and who calls the functions it touches. All of it fits a fixed budget, in a fixed priority order, and the log says exactly what went in.
-**Why.** A diff cannot show a missing check, a violated project rule or a broken caller. The model can only reason about what is in its prompt, so context decides which defects are even visible.
+**Goal.** The reviewer sees more than the diff: project rules, the spec, the full files the PR changes, and callers of what it touches, within a fixed budget.
+**Why.** A diff cannot show a missing check, a broken project rule or a broken caller. The model can only reason about what is in its prompt.
 
-## Files you change
+## Files
 - `src/context.ts`
 
 ## What to write
-`src/context.ts` already has the types, constants and `changedFiles()`. Replace the `TODO`s:
+- `extractLinkedDocs(body)`: up to 5 unique `.md` paths containing `/` from the PR body; a `/blob/<ref>/` URL becomes a repo path, other URLs, `node_modules/` and `../` are ignored.
+- `extractSymbols(rawDiff)`: names changed in files that already existed, not in new files or `DATA_PATH` files: added `function x`, `const x = () =>`, `class x`, `def x`, plus the name after the second `@@`. 4+ chars, unique, max 12.
+- `findCallers(symbols, files, maxHits)`: whole-word grep, max 20 hits, 5 per symbol, text = trimmed line (160 chars).
+- `assembleContext(candidates, budget)`: priority rules > spec > file > callers; cut to `maxChars`, then to what is left; under `MIN_USEFUL` → skipped; every block via `wrapUntrusted`; one log line each and a final `context: …` line.
+- `gatherContext(source, opts)`: rules files, linked + touched `docs/**/*.md` + `extraDocs`, modified code files (smallest first), callers outside the diff.
 
-| Function | Does |
-|---|---|
-| `extractLinkedDocs(body)` | up to 5 unique repo paths ending in `.md` (with a `/`) mentioned in the PR body; a `/blob/<ref>/` URL becomes a repo path; other URLs, `node_modules/`, `../` ignored |
-| `extractSymbols(rawDiff)` | names of functions or components the diff changes in files that already existed (added `function x`, `const x = () =>`, `class x`, `def x`, and the enclosing name in the `@@` header); 4+ characters, unique, max 12 |
-| `findCallers(symbols, files, maxHits)` | whole-word grep: one `Hit` per matching line; max 20 hits overall, 5 per symbol |
-| `assembleContext(candidates, budget)` | priority **rules > specs > full files > callers**; each block is cut to its own cap, then to what is left; under 300 chars of room → skipped; every block goes through `wrapUntrusted()`; one log line per block and a final `context: N block(s), X / BUDGET chars` line |
-| `gatherContext(source, opts)` | builds the candidates from a `RepoSource`: **(a)** `CLAUDE.md`, `AGENTS.md`, `README.md` if present; **(b)** docs linked from the PR body, plus `docs/**/*.md` the PR touches, plus `opts.extraDocs`; **(c)** head version of files the PR **modifies** (a new file is already complete in the diff); **(d)** callers of the changed symbols in files the diff does not touch |
-
-The source is one interface with two implementations, already written in `src/source.ts`: a local directory (`--repo-dir`, the CI checkout, or the recorded fixture) and the GitHub API at the PR head commit (`--pr owner/repo#N`; it uses `GITHUB_TOKEN` if set). `--no-context` and `--dry-run` are already wired in `src/index.ts`.
-
-## Acceptance criteria
-1. WHEN the PR body links a doc, or the diff touches a `docs/**/*.md`, the reviewer SHALL include it as a specification block. Check: `npm test -- context`.
-2. WHEN the diff changes a function, the reviewer SHALL list its usages outside the diff and SHALL skip `node_modules`. Check: `npm test -- context`.
-3. WHEN the total exceeds the budget, the reviewer SHALL skip or cut the lowest-priority blocks and say so in the log. Check: `CONTEXT_BUDGET=20000 npm run review:mock -- --dry-run` prints at least one line with `skipped` or `cut from`.
-4. WHEN the context is built, every block SHALL be wrapped as untrusted data. Check: `npm test -- context` (the "wraps every block" test).
-5. WHEN the reviewer runs, it SHALL log which blocks were included and their sizes. Check: `npm run review:mock -- --dry-run` lists `CLAUDE.md` and `docs/specs/analytics-dashboard-spec.md`.
-6. WHEN `--no-context` is passed, the reviewer SHALL print `Context: off` and a smaller prompt. Check: `npm run review:mock -- --dry-run --no-context`, then compare the token count with the run above.
+## Acceptance
+1. WHEN the PR body links a doc, or the diff touches `docs/**/*.md`, the reviewer SHALL add it as a spec block.
+2. WHEN the diff changes a function, the reviewer SHALL list its usages outside the diff and skip `node_modules`.
+3. WHEN the total exceeds the budget, the reviewer SHALL cut or skip the lowest-priority blocks and log it.
+4. WHEN blocks are built, every one SHALL be wrapped as untrusted data.
 
 ## Done when
-`npm test -- context` prints `16 passed`. `npm run review:mock -- --dry-run` prints a context log that lists `CLAUDE.md` and `docs/specs/analytics-dashboard-spec.md`, ends with a `context: N block(s), X / 60,000 chars` line, and then prints a prompt size per agent. The same command with `--no-context` prints a smaller prompt. The full `npm test` shows `10 failed | 35 passed`: those are steps 3 and 4.
+`npm test -- context` → `16 passed` (full `npm test`: `10 failed | 35 passed`, steps 3–4).
+
+## Steps
+1. `git stash && git checkout step-1-findings`
+2. Paste the prompt into your coding agent.
+3. `npm test -- context`
+4. `npm run review:mock -- --dry-run`: the log lists `CLAUDE.md` and `docs/specs/analytics-dashboard-spec.md`, then `context: N block(s), X / 60,000 chars`.
+5. Add `--no-context` and compare the prompt size (or use `npm run ui`).
 
 ## Prompt
 ```text
-Read specs/step-2-context.md and implement it in src/context.ts. Do not change tests, src/source.ts or src/index.ts.
-Run `npm test -- context` until it is green.
-Run `npm run review:mock -- --dry-run` and show me the context log: which blocks went in, how big, and which were cut or skipped.
-Run it again with `--no-context` and tell me how much smaller the prompt is.
+Step 2 · Repository context. Spec: specs/step-2-context.md (read it first).
+Implement in src/context.ts, replacing the TODOs (types, constants, changedFiles are given):
+1. extractLinkedDocs(body): up to MAX_LINKED_DOCS unique repo paths ending in .md that contain a "/". A URL with
+   /blob/<ref>/<path>.md gives <path>; other URLs, node_modules/ and ../ are ignored; strip a leading ./; keep order.
+2. extractSymbols(rawDiff): in files that already existed (skip "new file mode" and DATA_PATH files) take names from added
+   lines (function x, const x = (...) =>, const x = async y =>, class x, def x) and from the text after the second @@
+   of a hunk header. Keep names of 4+ chars, unique, not in `stop`, at most MAX_SYMBOLS.
+3. findCallers(symbols, files, maxHits): whole-word match per line (not inside a longer identifier); one Hit per line and
+   symbol; at most maxHits overall and 5 per symbol; text = trimmed line, 160 chars.
+4. assembleContext(candidates, budget): sort by PRIORITY (rules, spec, file, callers). room = min(maxChars, budget - used);
+   room < MIN_USEFUL -> skipped, logged "✗ … skipped (budget exhausted)". Longer text is cut to room - TRUNCATED.length plus
+   TRUNCATED. Block = `### ${HEADING[kind]}: ${label}\n${wrapUntrusted(`${kind}:${label}`, text)}`. Log ✓ / ~ (cut from N) / ✗
+   per candidate and a final "context: N block(s), X / BUDGET chars (~T tokens)" line. Return { blocks, log, chars, budget }.
+5. gatherContext(source, opts): candidates from RULES_FILES; specs (extractLinkedDocs(prBody) + changed docs/**/*.md that are not
+   deleted + extraDocs, max MAX_LINKED_DOCS + 2, maxChars MAX_DOC_CHARS); modified files (not new, not deleted, CODE_EXT, not
+   NOT_REVIEWABLE or DATA_PATH), smallest first, maxChars MAX_FILE_CHARS; callers of extractSymbols in source.list() files not
+   in the diff (up to source.scanLimit, nearest directories first), one block, maxChars 4000. Use mapLimit for reads.
+Constraints: do not change tests, src/source.ts or src/index.ts.
+Verify: run `npm test -- context` until 16 passed. Then run `npm run review:mock -- --dry-run` and show me the context log
+(what went in, sizes, what was cut or skipped), and run it again with --no-context and tell me how much smaller the prompt is.
 ```
 
 ## Start from

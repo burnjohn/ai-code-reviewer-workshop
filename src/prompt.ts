@@ -2,15 +2,21 @@
 // Three mandatory blocks + every piece of PR text wrapped as untrusted DATA.
 import type { Agent } from './agents.ts';
 
-// TODO(step 1): write the three blocks every reviewer prompt needs.
 const SEVERITY_RUBRIC = `## Severity rubric
-TODO: define CRITICAL, WARNING and SUGGESTION with one concrete line each.`;
+- CRITICAL: exploitable security hole, data loss, crash on a common path, or a broken acceptance criterion.
+- WARNING: a real bug in an edge case, a missing check, a race, or a clear performance problem.
+- SUGGESTION: readability or maintainability. Never use SUGGESTION for a bug.`;
 
 const VERDICT_SEMANTICS = `## Verdict semantics
-TODO: when is it request_changes / comment / approve?`;
+- request_changes: at least one CRITICAL finding.
+- comment: only WARNING or SUGGESTION findings.
+- approve: no findings.`;
 
 const FINDINGS_DISCIPLINE = `## Findings discipline
-TODO: only changed lines, cite NEW-side line numbers, one finding per root cause, zero findings is OK.`;
+- Report only problems in lines that were ADDED or CHANGED in this diff.
+- Cite NEW-side line numbers exactly as printed at the start of each diff line.
+- One finding per root cause. No duplicates, no praise, no style nitpicks.
+- If you are not sure a problem is real, leave it out. Zero findings is a valid answer.`;
 
 // READY — do not remove. PR text is written by the PR author, so it is never instructions.
 const INJECTION_GUARD = `## Security

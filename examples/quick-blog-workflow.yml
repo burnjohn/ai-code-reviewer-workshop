@@ -12,7 +12,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-# TODO(step 3, rule 2): add a top-level `permissions:` block with contents: read and pull-requests: write.
+# Rule 2
+permissions:
+  contents: read
+  pull-requests: write
 
 concurrency:
   group: ai-review-${{ github.event.pull_request.number }}
@@ -20,7 +23,8 @@ concurrency:
 
 jobs:
   review:
-    # TODO(step 3, rule 3): add the fork guard: `if:` the head repo full_name equals github.repository.
+    # Rule 3
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,13 +32,14 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          # TODO(step 3): persist-credentials: false (here and in the second checkout)
+          persist-credentials: false
 
       # 2) your reviewer: a public repo, so no token is needed
       - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/ai-code-reviewer-workshop
           path: reviewer
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:

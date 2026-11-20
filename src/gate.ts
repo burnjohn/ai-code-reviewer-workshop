@@ -10,11 +10,7 @@ const MIN_RANK: Record<FailOn, number> = { never: Infinity, critical: 3, warning
 const ICON = { CRITICAL: '🔴', WARNING: '🟡', SUGGESTION: '🔵' } as const;
 
 export function countBlockers(findings: Finding[], failOn: FailOn): number {
-  // TODO(step 3): count findings whose RANK[severity] is >= MIN_RANK[failOn].
-  // The model's `verdict` is NOT used here, on purpose.
-  void findings;
-  void failOn;
-  return 0;
+  return findings.filter((f) => RANK[f.severity] >= MIN_RANK[failOn]).length;
 }
 
 export type ReviewEvent = 'COMMENT' | 'REQUEST_CHANGES';

@@ -15,6 +15,8 @@ const MAX_DOC_CHARS = 16_000;
 const MAX_FILE_CHARS = 12_000;
 const MAX_CALLER_HITS = 20;
 const MAX_SYMBOLS = 12;
+// Words that are never worth searching for as callers.
+const STOP_SYMBOLS = new Set(['default', 'handler', 'render', 'return', 'async', 'await', 'function', 'constructor']);
 const TRUNCATED = '\n[… truncated]';
 const MIN_USEFUL = 300; // a block with less room than this is skipped, not squeezed in
 
@@ -85,7 +87,7 @@ export function extractSymbols(rawDiff: string): string[] {
   // TODO(step 2): scan the diff of NON-new files that do not match DATA_PATH. Take names from
   //   - added lines (+): `function name`, `const name = (…) =>`, `const name = async x =>`, `class name`, `def name`
   //   - the text after the second @@ of a hunk header (the enclosing function)
-  //   Keep names of 4+ characters, unique, at most MAX_SYMBOLS, never the words in `stop`.
+  //   Keep names of 4+ characters, unique, at most MAX_SYMBOLS, never a word in STOP_SYMBOLS.
   void rawDiff;
   return [];
 }

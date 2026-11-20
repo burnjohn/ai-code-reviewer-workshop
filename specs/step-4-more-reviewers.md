@@ -41,7 +41,7 @@ Implement:
    sameProblem(merged, finding) (it checks file, overlapping ranges, title similarity). No match: push { ...finding,
    agents: [agent] }. Match: add the agent if not listed; if the new severity is higher by RANK, copy the new finding over
    the merged one but keep the agents list. Return the list sorted by RANK desc, then file, then start_line.
-Constraints: do not change tests or any other file in src/.
+Constraints: do not change tests, or any file in src/ other than src/dedup.ts.
 Verify: run `npm test` until 45 passed. Then run `npm run review:mock -- --dry-run` and show me the three agents and the
 context log lines for the spec.
 ```

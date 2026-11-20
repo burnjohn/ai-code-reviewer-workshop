@@ -66,7 +66,7 @@ export async function callModel(
     // Offline mode: replay the answer recorded by `npm run record` for this agent (with or without context).
     const file = answerPath(agentId, variant);
     if (!existsSync(file)) {
-      throw new Error(`No recorded answer for agent '${agentId}' (${variant}): ${file} is missing. Run "npm run record" first.`);
+      throw new Error(`No recorded answer for agent '${agentId}' (${variant}): ${file} is missing. Recorded answers are missing: ask the speaker, or run `npm run review` with your key. (Maintainer: run "npm run record" first.)`);
     }
     const rec = JSON.parse(readFileSync(file, 'utf8')) as Partial<LlmResult> & { review: unknown };
     const parsed = parseReview(JSON.stringify(rec.review));

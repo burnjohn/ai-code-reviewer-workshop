@@ -8,15 +8,15 @@
 
 ## What to write
 - `extractLinkedDocs(body)`: up to 5 unique `.md` paths with a `/` from the PR body; `/blob/<ref>/` URLs become repo paths.
-- `extractSymbols(rawDiff)`: names changed in already existing code files (functions, arrow consts, classes, `def`); 4+ chars, max 12.
+- `extractSymbols(rawDiff)`: skip new files and `DATA_PATH` files; names from added lines (`function x`, `const x = () =>`, `class x`, `def x`) and from the text after the second `@@` of a hunk header; 4+ chars, unique, not in `STOP_SYMBOLS` (given), max 12.
 - `findCallers(symbols, files, maxHits)`: whole-word grep, max 20 hits, 5 per symbol.
-- `assembleContext(candidates, budget)`: priority rules > spec > file > callers; per-block cap, then the rest of the budget; too little room → skipped; `wrapUntrusted` on every block; one log line each.
+- `assembleContext(candidates, budget)`: priority rules > spec > file > callers; cut to the block's cap, then to the room left; room under `MIN_USEFUL` → skipped; `wrapUntrusted` on every block; one log line each.
 - `gatherContext(source, opts)`: rules files, linked and touched docs, modified code files (smallest first), callers outside the diff.
 
 ## Acceptance
 1. WHEN the PR body links a doc, or the diff touches `docs/**/*.md`, the reviewer SHALL add it as a spec block.
 2. WHEN the diff changes a function, the reviewer SHALL list its usages outside the diff and skip `node_modules`.
-3. WHEN the total exceeds the budget, the reviewer SHALL cut or skip the lowest-priority blocks and log it.
+3. WHEN the total exceeds the budget, the reviewer SHALL cut a block to the room left, or skip it when the room is under `MIN_USEFUL`, in priority order, and log it.
 4. WHEN blocks are built, every one SHALL be wrapped as untrusted data.
 
 ## Done when
@@ -36,7 +36,7 @@ Implement in src/context.ts, replacing the TODOs (types, constants, changedFiles
 1. extractLinkedDocs(body): up to MAX_LINKED_DOCS unique paths ending in .md that contain "/". A /blob/<ref>/<path>.md URL
    gives <path>; other URLs, node_modules/ and ../ are ignored; strip a leading ./; keep order.
 2. extractSymbols(rawDiff): skip new files and DATA_PATH files; take names from added lines (function x, const x = (...) =>,
-   class x, def x) and from the text after the second @@. 4+ chars, unique, not in `stop`, max MAX_SYMBOLS.
+   class x, def x) and from the text after the second @@. 4+ chars, unique, not in STOP_SYMBOLS (given), max MAX_SYMBOLS.
 3. findCallers(symbols, files, maxHits): whole-word match per line; max maxHits overall, 5 per symbol; text = trimmed line, 160 chars.
 4. assembleContext(candidates, budget): sort by PRIORITY; room = min(maxChars, budget - used); room < MIN_USEFUL -> log
    "✗ … skipped (budget exhausted)"; longer text is cut to fit room with TRUNCATED appended; block =

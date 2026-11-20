@@ -34,7 +34,7 @@ Step 3 · Gate + GitHub Action. Spec: specs/step-3-github-action.md (read it fir
 Implement in src/gate.ts and examples/quick-blog-workflow.yml:
 1. gate.ts: countBlockers(findings, failOn) returns how many findings have RANK[f.severity] >= MIN_RANK[failOn]
    (both tables exist). Do not look at the model's verdict. Remove the void/return 0 placeholder and its TODO.
-2. quick-blog-workflow.yml, replace the three TODO comments: (a) a top-level block
+2. quick-blog-workflow.yml, replace the three TODO comments (permissions, fork guard, and one persist-credentials TODO that covers both checkouts): (a) a top-level block
    `permissions:` with `contents: read` and `pull-requests: write`; (b) on the review job
    `if: github.event.pull_request.head.repo.full_name == github.repository`; (c) `persist-credentials: false` in the `with:`
    of BOTH actions/checkout steps.

@@ -9,15 +9,15 @@
 - `src/grounding.ts`
 
 ## What to write
-- `FindingSchema` gets 5 fields after `end_line`: `severity` (`Severity`), `category` (enum `security`, `correctness`, `performance`, `spec`, `maintainability`), `title`, `rationale`, `suggestion` (strings, `''` if none). Add `.describe()` text; `Finding` and `Review` become `z.infer<...>`.
-- `prompt.ts`: real text for `SEVERITY_RUBRIC`, `VERDICT_SEMANTICS` (`request_changes` = a CRITICAL, `comment` = only WARNING/SUGGESTION, `approve` = no findings) and `FINDINGS_DISCIPLINE` (changed lines only, NEW-side numbers, one finding per root cause, zero is valid). Keep `INJECTION_GUARD`.
+- `FindingSchema` + 5 fields: `severity`, `category` (enum `security`, `correctness`, `performance`, `spec`, `maintainability`), `title`, `rationale`, `suggestion`. `Finding` and `Review` become `z.infer<...>`.
+- `prompt.ts`: text for `SEVERITY_RUBRIC`, `VERDICT_SEMANTICS` (`request_changes` = a CRITICAL, `comment` = only WARNING/SUGGESTION, `approve` = none) and `FINDINGS_DISCIPLINE`. Keep `INJECTION_GUARD`.
 - `groundFindings(findings, diff)`: no entry in `buildLineIndex(diff)` → drop with `file '<path>' is not in the diff`. No line of `lo..hi` (min/max of start/end) in the index → drop with `lines <lo>-<hi> do not touch any hunk in '<path>'`. Else keep.
 
 ## Acceptance
 1. WHEN a finding has an unknown category or no severity, the schema SHALL reject it.
 2. WHEN a finding's file is not in the diff, or its lines miss every hunk, the reviewer SHALL drop it with the exact reason above.
 3. WHEN a range partly overlaps a hunk, or start is after end, the reviewer SHALL keep it.
-4. WHEN the prompt is built, it SHALL contain no `TODO` and still contain the injection guard.
+4. WHEN the prompt is built, it SHALL contain no `TODO` and keep the injection guard.
 
 ## Done when
 `npm test -- schema grounding` → `10 passed` (full `npm test`: `23 failed | 22 passed`, those are steps 2–4).
@@ -26,7 +26,7 @@
 1. `git checkout main`
 2. Paste the prompt into your coding agent.
 3. `npm test -- schema grounding`
-4. `npm run review:mock` (or `npm run review`, or `npm run ui`): findings print with severity and title, no `undefined`; any `DROPPED` line ends with a reason.
+4. `npm run review:mock` (or `npm run review` / `npm run ui`): no `undefined`; each `DROPPED` line has a reason.
 
 ## Prompt
 ```text

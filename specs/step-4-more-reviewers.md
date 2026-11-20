@@ -11,7 +11,7 @@
 ## What to write
 - Agent file = frontmatter (`name`, `model`, `fail_on`, optional `spec:`) + system prompt; the file name is the agent id. Start from `fixtures/agents/`. Body: narrow scope, a negative list, a cap on findings. The spec agent has `spec: docs/specs/analytics-dashboard-spec.md`, checks every `AC-x.y`, reports broken ones as category `spec` with the AC id first in the title, and counts missing code.
 - `dedupFindings(perAgent)`: same problem = same `file`, overlapping ranges, and `sameProblem()` true (helpers given). A merged finding keeps the text and severity of the most severe report and lists every agent once. Sort by severity, then file, then `start_line`.
-- Already wired: agents run in parallel, `AGENTS=general,security` filters, `REVIEW_MODEL` overrides models, per-agent tokens and cost are printed.
+- Already wired: parallel run, `AGENTS=…` filter, `REVIEW_MODEL`, per-agent tokens and cost.
 
 ## Acceptance
 1. WHEN two agents report the same file, overlapping lines and a similar title, the reviewer SHALL merge them, keep the highest severity and list both agents.

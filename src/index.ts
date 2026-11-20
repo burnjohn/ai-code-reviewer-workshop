@@ -1,4 +1,4 @@
-// Entry point.
+// Entry point (the CLI door). The review itself is runReview() in src/run.ts; the local UI calls the same function.
 //   npm run review        real model, PR from REVIEW_PR (.env)
 //   npm run review:mock   offline, recorded PR + recorded answers
 //   --pr owner/repo#N     which PR (default: REVIEW_PR)      --repo-dir <dir>   read files from a checkout
@@ -6,14 +6,10 @@
 //   --ci                  GitHub Action mode: reads GITHUB_REPOSITORY, PR_NUMBER, GITHUB_TOKEN and POSTS the review
 import './env.ts';
 import { parseArgs } from 'node:util';
-import { loadAgents } from './agents.ts';
-import { gatherContext, type Context } from './context.ts';
-import { dedupFindings } from './dedup.ts';
-import { countBlockers, toReviewPayload, type AgentOutcome } from './gate.ts';
+import { toReviewPayload } from './gate.ts';
 import { postReview } from './github.ts';
 import { parseUnifiedDiff } from './diff.ts';
-import { loadTarget } from './pr.ts';
-import { promptFor, reviewWithAgent, type ReviewInput } from './review.ts';
+import { runReview } from './run.ts';
 
 const { values } = parseArgs({
   options: {
@@ -35,70 +31,41 @@ const SEV = {
 const n = (x: number) => x.toLocaleString('en-US');
 
 async function main() {
-  const { ref, pr, source } = await loadTarget({ ci: values.ci, pr: values.pr, repoDir: values['repo-dir'] });
-  console.log(`${C.dim}PR ${ref.owner}/${ref.repo}#${ref.number} · ${pr.title}${C.off}`);
-
-  const agents = loadAgents();
-  let context: Context | null = null;
-  if (values['no-context']) {
-    console.log(`${C.dim}Context: off (--no-context)${C.off}`);
-  } else {
-    console.log(`${C.dim}Context from ${source.label}:${C.off}`);
-    context = await gatherContext(source, {
-      rawDiff: pr.diff,
-      prBody: pr.body,
-      extraDocs: agents.flatMap((a) => (a.specPath ? [a.specPath] : [])),
-    });
-    for (const line of context.log) console.log(`${C.dim}${line}${C.off}`);
-  }
-  const input: ReviewInput = { rawDiff: pr.diff, prTitle: pr.title, prBody: pr.body, context: context?.blocks };
+  const r = await runReview({
+    ci: values.ci,
+    pr: values.pr,
+    repoDir: values['repo-dir'],
+    noContext: values['no-context'],
+    dryRun: values['dry-run'],
+  });
+  console.log(`${C.dim}PR ${r.pr.owner}/${r.pr.repo}#${r.pr.number} · ${r.pr.title}${C.off}`);
+  console.log(values['no-context'] ? `${C.dim}Context: off (--no-context)${C.off}` : r.contextLog.map((l) => `${C.dim}${l}${C.off}`).join('\n'));
+  for (const note of r.notes) console.log(`${C.yel}note: ${note}${C.off}`);
 
   if (values['dry-run']) {
     console.log('\nPrompt sizes (no model is called):');
-    for (const a of agents) {
-      const [sys, user] = promptFor(a, input);
-      const chars = sys.content.length + user.content.length;
-      console.log(
-        `  ${a.id.padEnd(18)} system ${n(sys.content.length)} + user ${n(user.content.length)} chars ≈ ${n(Math.round(chars / 4))} tokens → ${a.model}`,
-      );
+    for (const p of r.promptSizes) {
+      console.log(`  ${p.agent.padEnd(18)} ${n(p.chars)} chars ≈ ${n(Math.round(p.chars / 4))} tokens → ${p.model}`);
     }
     return;
   }
 
-  console.log(`\n${C.dim}Reviewing with ${agents.length} agent(s): ${agents.map((a) => `${a.id} → ${a.model}`).join(', ')}${C.off}\n`);
-
-  // Agents are independent, so they run in parallel.
-  const results = await Promise.all(agents.map((a) => reviewWithAgent(a, input)));
-  const outcomes: AgentOutcome[] = [];
-  let totalCost = 0;
-  let totalIn = 0;
-  let totalOut = 0;
-  for (const { outcome, dropped, llm } of results) {
-    outcomes.push(outcome);
-    totalCost += llm.costUsd ?? 0;
-    totalIn += llm.tokensIn;
-    totalOut += llm.tokensOut;
-    console.log(
-      `■ ${outcome.agent}  ${C.dim}${llm.model} · ${n(llm.tokensIn)} in / ${n(llm.tokensOut)} out · $${(llm.costUsd ?? 0).toFixed(5)} · ${llm.ms} ms${C.off}`,
-    );
-    for (const f of outcome.findings) console.log(`  ${SEV[f.severity]}  ${f.file}:${f.start_line}  ${f.title}`);
-    for (const d of dropped) console.log(`  ${C.dim}DROPPED   ${d.finding.title} — ${d.reason}${C.off}`);
-    if (values.verbose) console.log(JSON.stringify(llm.review, null, 2));
+  console.log(`\n${C.dim}Reviewed with ${r.agents.length} agent(s): ${r.agents.map((a) => `${a.id} → ${a.model}`).join(', ')}${C.off}\n`);
+  for (const a of r.agents) {
+    console.log(`■ ${a.name}  ${C.dim}${a.model} · ${n(a.tokensIn)} in / ${n(a.tokensOut)} out · $${a.costUsd.toFixed(5)} · ${a.ms} ms${C.off}`);
+    for (const f of a.findings) console.log(`  ${SEV[f.severity]}  ${f.file}:${f.start_line}  ${f.title}`);
+    for (const d of a.dropped) console.log(`  ${C.dim}DROPPED   ${d.title} — ${d.reason}${C.off}`);
     console.log();
   }
-
-  const merged = dedupFindings(outcomes.map((o) => ({ agent: o.agent, findings: o.findings })));
-  const perAgent = outcomes.map((o) => `${o.agent} ${o.findings.length}`).join(' · ');
-  console.log(`Findings per agent: ${perAgent} → ${merged.length} after dedup`);
-  const blockers = outcomes.reduce((acc, o) => acc + countBlockers(o.findings, o.failOn), 0);
-  console.log(`Total: ${n(totalIn)} in / ${n(totalOut)} out tokens · $${totalCost.toFixed(5)} · blockers: ${blockers}`);
+  console.log(`Findings per agent: ${r.agents.map((a) => `${a.name} ${a.findings.length}`).join(' · ')} → ${r.merged.length} after dedup`);
+  console.log(`Total: ${n(r.totals.tokensIn)} in / ${n(r.totals.tokensOut)} out tokens · $${r.totals.costUsd.toFixed(5)} · blockers: ${r.blockers}`);
 
   if (values.ci) {
-    const payload = toReviewPayload(outcomes, parseUnifiedDiff(pr.diff));
-    await postReview(ref, process.env.GITHUB_TOKEN ?? '', payload);
+    const payload = toReviewPayload(r.outcomes, parseUnifiedDiff(r.rawDiff));
+    await postReview(r.pr, process.env.GITHUB_TOKEN ?? '', payload);
     console.log(`Posted ${payload.event} with ${payload.comments.length} inline comment(s).`);
   }
-  if (blockers > 0) {
+  if (r.gate === 'FAIL') {
     console.log(`${C.red}Gate: FAIL${C.off} (the model's own verdict is ignored)`);
     process.exitCode = 1;
   } else {

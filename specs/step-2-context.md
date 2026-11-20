@@ -28,7 +28,7 @@ The source is one interface with two implementations, already written in `src/so
 6. WHEN `--no-context` is passed, the reviewer SHALL print `Context: off` and a smaller prompt. Check: `npm run review:mock -- --dry-run --no-context`, then compare the token count with the run above.
 
 ## Done when
-`npm test -- context` prints `16 passed`. `npm run review:mock -- --dry-run` prints a context log that lists `CLAUDE.md` and `docs/specs/analytics-dashboard-spec.md`, ends with a `context: N block(s), X / 60,000 chars` line, and then prints a prompt size per agent. The same command with `--no-context` prints a smaller prompt. The full `npm test` shows `10 failed | 31 passed`: those are steps 3 and 4.
+`npm test -- context` prints `16 passed`. `npm run review:mock -- --dry-run` prints a context log that lists `CLAUDE.md` and `docs/specs/analytics-dashboard-spec.md`, ends with a `context: N block(s), X / 60,000 chars` line, and then prints a prompt size per agent. The same command with `--no-context` prints a smaller prompt. The full `npm test` shows `10 failed | 35 passed`: those are steps 3 and 4.
 
 ## Prompt
 ```text
@@ -39,7 +39,7 @@ Run it again with `--no-context` and tell me how much smaller the prompt is.
 ```
 
 ## Start from
-`git stash && git checkout step-1`
+`git stash && git checkout step-1-findings`
 
 ## Lost?
-`git stash && git checkout step-2`
+`git stash && git checkout step-2-context`

@@ -33,7 +33,7 @@
 4. WHEN the PR is opened in the fork, the workflow SHALL post one review with inline comments, and the check SHALL be red exactly when the log says `blockers: <n>` with n above 0. Check: the Actions tab and the PR "Files changed" tab.
 
 ## Done when
-`npm test -- gate workflow` prints `9 passed`, and the full `npm test` shows `4 failed | 37 passed` (only step 4 is left). In your fork, the `AI code review` run finishes, the PR has an `AI Review` review with at least one inline comment on a changed line, and the check colour matches the `blockers:` line of the log.
+`npm test -- gate workflow` prints `9 passed`, and the full `npm test` shows `4 failed | 41 passed` (only step 4 is left). In your fork, the `AI code review` run finishes, the PR has an `AI Review` review with at least one inline comment on a changed line, and the check colour matches the `blockers:` line of the log.
 
 ## Prompt
 ```text
@@ -45,7 +45,7 @@ Do not push anything.
 ```
 
 ## Start from
-`git stash && git checkout step-2`
+`git stash && git checkout step-2-context`
 
 ## Lost?
-`git stash && git checkout step-3`
+`git stash && git checkout step-3-gate-action`

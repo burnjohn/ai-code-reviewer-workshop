@@ -10,6 +10,7 @@
     "review": "tsx src/index.ts",
     "review:mock": "REVIEW_MOCK=1 tsx src/index.ts",
     "record": "tsx scripts/record.ts",
+    "ui": "tsx ui/server.ts",
     "test": "vitest run --dir test"
   },
   "dependencies": {

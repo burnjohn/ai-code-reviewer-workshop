@@ -12,16 +12,17 @@ PR + repo ─► context ─► prompt ─► OpenRouter (json_schema) ─► gr
 
 ## Setup (5 min)
 
-1. **Use this template → Create a new repository.** Tick **Include all branches** (you need the `step-N` checkpoints). Keep it **public**: your workflow checks it out without a token.
+1. **Use this template → Create a new repository.** Tick **Include all branches** (you need the checkpoint branches). Keep it **public**: your workflow checks it out without a token.
 2. Open a Codespace on `main` (or locally: Node 22).
 3. Create `.env` from the example and add your OpenRouter key (`.env` is gitignored):
 
 ```bash
 cp .env.example .env      # then set OPENROUTER_API_KEY=sk-or-...
 npm ci
-npm test                  # red by design: 29 failed | 12 passed
+npm test                  # red by design: 29 failed | 16 passed
 npm run review:mock       # offline: recorded PR + recorded model answers
 npm run review            # real: fetches the PR from GitHub, calls OpenRouter
+npm run ui                # the same reviewer in a browser: http://127.0.0.1:3000 (PORT, HOST override)
 ```
 
 `REVIEW_PR` in `.env` is the default PR (`burnjohn/quick-blog#34`); `--pr owner/repo#N` overrides it. Without a `GITHUB_TOKEN` the GitHub API allows 60 requests per hour per IP, which a room on one Wi-Fi shares; set `GITHUB_TOKEN` in `.env` (a Codespace already has one), or use `npm run review:mock`.
@@ -37,7 +38,19 @@ Each step has a spec in [`specs/`](specs/README.md) with a prompt for your codin
 | 3 · Gate + GitHub Action | `src/gate.ts`, `examples/quick-blog-workflow.yml` | [step-3](specs/step-3-github-action.md) |
 | 4 · More reviewers | `.reviewer/agents/*.md`, `src/dedup.ts` | [step-4](specs/step-4-more-reviewers.md) |
 
-Lost? `git stash && git checkout step-N` jumps to the solution of step N.
+Branches: `main` is the starter; each checkpoint branch holds the **solution** of one step. Lost? `git stash && git checkout <branch>`.
+
+| Branch | Contents |
+|---|---|
+| `main` | starter, start of step 1 |
+| `step-1-findings` | solution of step 1 |
+| `step-2-context` | solution of step 2 |
+| `step-3-gate-action` | solution of step 3 |
+| `step-4-more-reviewers` | solution of step 4 |
+| `final` | full functionality (= `step-4-more-reviewers`) |
+| `stretch/mcp` | `final` + MCP tool |
+
+**No MCP? Use the UI.** `npm run ui` serves a one-page local UI (no build step): pick the PR, agents, model, context on/off, mock on/off, and see findings, dropped findings, the context log, per-agent cost and the gate. It runs the same code as the CLI, never posts to GitHub, and is on every branch; on `main` it shows the starter state.
 
 ## Step 3: run it on QuickBlog in your fork
 

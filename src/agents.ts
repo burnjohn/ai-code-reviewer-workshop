@@ -28,7 +28,7 @@ function parseFrontmatter(src: string): { meta: Record<string, string>; body: st
   return { meta, body: m[2].trim() };
 }
 
-export function loadAgents(dir = '.reviewer/agents', only = process.env.AGENTS): Agent[] {
+export function loadAgents(dir = '.reviewer/agents', only = process.env.AGENTS, model = process.env.REVIEW_MODEL): Agent[] {
   const wanted = only ? new Set(only.split(',').map((s) => s.trim())) : null;
   return readdirSync(dir)
     .filter((f) => f.endsWith('.md'))
@@ -39,7 +39,7 @@ export function loadAgents(dir = '.reviewer/agents', only = process.env.AGENTS):
       return {
         id,
         name: meta.name ?? id,
-        model: process.env.REVIEW_MODEL || meta.model || DEFAULT_MODEL,
+        model: model || meta.model || DEFAULT_MODEL,
         failOn: (meta.fail_on as FailOn) ?? 'critical',
         specPath: meta.spec || undefined,
         prompt: body,

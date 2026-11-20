@@ -41,7 +41,7 @@ Do not touch `INJECTION_GUARD` or `wrapUntrusted`.
 5. WHEN the reviewer runs, it SHALL print each kept finding as severity, `file:line` and title, and each dropped one as a `DROPPED` line that ends with its reason. Check: `npm run review:mock` (or `npm run review`) shows no `undefined`.
 
 ## Done when
-`npm test -- schema grounding` prints `10 passed`, and `npm run review:mock` prints at least one finding line (`CRITICAL`, `WARNING` or `SUGGEST`, then `file:line`, then a title) with no `undefined` anywhere. Any `DROPPED` line ends with `is not in the diff` or `do not touch any hunk in '<path>'`. The full `npm test` still shows `23 failed | 18 passed`: those are steps 2, 3 and 4.
+`npm test -- schema grounding` prints `10 passed`, and `npm run review:mock` prints at least one finding line (`CRITICAL`, `WARNING` or `SUGGEST`, then `file:line`, then a title) with no `undefined` anywhere. Any `DROPPED` line ends with `is not in the diff` or `do not touch any hunk in '<path>'`. The full `npm test` still shows `23 failed | 22 passed`: those are steps 2, 3 and 4.
 
 ## Prompt
 ```text
@@ -56,4 +56,4 @@ and every DROPPED line with its reason.
 `git checkout main`
 
 ## Lost?
-`git stash && git checkout step-1`
+`git stash && git checkout step-1-findings`

@@ -35,19 +35,19 @@ The runner already runs every file in `.reviewer/agents/` in parallel, honours `
 5. WHEN all agents finish, the reviewer SHALL print tokens and cost per agent and a deduped total. Check: `npm run review | grep -E "^■|Findings per agent"` prints three `■` lines and `Findings per agent: … → N after dedup`, where N is at most the sum of the per-agent counts.
 
 ## Done when
-`npm test` prints `41 passed`. A run (`npm run review`, or `npm run review:mock` after `npm run record`) prints three `■` sections (`General reviewer`, `Security reviewer`, `Spec conformance`), each with `in / out` tokens and a cost, then `Findings per agent: … → N after dedup` and a `Total:` line with the summed cost.
+`npm test` prints `45 passed`. A run (`npm run review`, or `npm run review:mock` after `npm run record`) prints three `■` sections (`General reviewer`, `Security reviewer`, `Spec conformance`), each with `in / out` tokens and a cost, then `Findings per agent: … → N after dedup` and a `Total:` line with the summed cost.
 
 ## Prompt
 ```text
 Read specs/step-4-more-reviewers.md. Copy fixtures/agents/security.md and fixtures/agents/spec-conformance.md
 into .reviewer/agents/ and tighten one of them (a negative list, or a cap on findings).
 Implement dedupFindings() in src/dedup.ts. Do not change tests or any other file in src/.
-Run `npm test` until all 41 tests are green.
+Run `npm test` until all 45 tests are green.
 Run `npm run review:mock -- --dry-run` and show me the three agents and the context log.
 ```
 
 ## Start from
-`git stash && git checkout step-3`
+`git stash && git checkout step-3-gate-action`
 
 ## Lost?
-`git stash && git checkout step-4`
+`git stash && git checkout step-4-more-reviewers`

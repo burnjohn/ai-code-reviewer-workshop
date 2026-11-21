@@ -36,7 +36,7 @@ Keep what is already right: the trigger is `on: pull_request` (never `pull_reque
 1. `git stash && git checkout step-2-context`
 2. Paste the prompt into your coding agent, then `npm test -- gate workflow`.
 3. Fork `burnjohn/quick-blog` (untick "Copy the main branch only"); in the fork enable Actions, then add your OpenRouter key: Settings → Secrets and variables → Actions → New repository secret, name `OPENROUTER_API_KEY`, value = the key from your `.env`.
-4. In your fork on GitHub: Add file → Create new file, name `.github/workflows/ai-review.yml`, paste your `examples/quick-blog-workflow.yml`, commit to `main` (you do this, not the agent). CI takes 5–10 minutes: open the PR and go on to step 4. CI runs your reviewer repo's `final` branch; to run your own code, push it to a new branch and set the Actions variable `REVIEWER_REF` to it.
+4. In your fork on GitHub: Add file → Create new file, name `.github/workflows/ai-review.yml`, paste your `examples/quick-blog-workflow.yml`, commit to `main` (you do this, not the agent). CI takes about 2–3 minutes. CI runs your reviewer repo's `final` branch; to run your own code, push it to a new branch and set the Actions variable `REVIEWER_REF` to it.
 5. Open a PR in your fork: base `main`, compare `analytics` (`gh pr create -R <you>/quick-blog -B main -H analytics -t Analytics -b ""`). Check the Actions tab and "Files changed".
 
 ## Prompt

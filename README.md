@@ -61,11 +61,11 @@ Branches: `main` is the starter; each checkpoint branch holds the **solution** o
 
 ## Step 3: run it on QuickBlog in your fork
 
-1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, otherwise the `workshop` and `analytics` branches are not copied.
+1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, otherwise the `analytics` branch is not copied.
 2. In the fork, **Actions** tab: enable workflows. Forks start with Actions off.
 3. Add your OpenRouter key to the fork: **Settings → Secrets and variables → Actions → New repository secret**, name `OPENROUTER_API_KEY`, value = the same key as in your `.env` (or `gh secret set OPENROUTER_API_KEY -R <you>/quick-blog`). Without it the review step fails.
-4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `workshop` branch (`git switch workshop`, copy, commit, push). It runs the reviewer from the `final` branch of **your** `ai-code-reviewer-workshop` repo. To run your own code instead, push it to a new branch (`git push origin HEAD:my-reviewer`) and set the Actions variable `REVIEWER_REF=my-reviewer` in the fork.
-5. Open a pull request inside your fork: base `workshop`, compare `analytics`: `gh pr create -R <you>/quick-blog -B workshop -H analytics -t Analytics -b ""`. Not `main`: QuickBlog's `main` has moved on and conflicts with the analytics branch, and GitHub runs no `pull_request` workflow on a PR with conflicts. Inline comments and a red check appear within a couple of minutes.
+4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `main`. It runs the reviewer from the `final` branch of **your** `ai-code-reviewer-workshop` repo. To run your own code instead, push it to a new branch (`git push origin HEAD:my-reviewer`) and set the Actions variable `REVIEWER_REF=my-reviewer` in the fork.
+5. Open a pull request inside your fork: base `main`, compare `analytics`: `gh pr create -R <you>/quick-blog -B main -H analytics -t Analytics -b ""`. Inline comments and a red check appear in 5–10 minutes (three agents run in parallel).
 
 ## Environment variables
 

@@ -317,11 +317,11 @@ slides.push(slide({
         ${row(1, C.y, 'Fork QuickBlog', '<u>untick</u> “main branch only”', cmd('{{QUICKBLOG_URL}}', '', 'url'))}
         ${row(2, C.y, 'Enable Actions', 'the Actions tab of your fork', cmd('“I understand my workflows, go ahead and enable them”', '', 'nocp'))}
         ${row(3, C.y, 'Add your key', 'Secrets → Actions → New secret', cmd('OPENROUTER_API_KEY', ''))}
-        ${row(4, C.y, 'Add the workflow', 'on the fork’s <u>workshop</u> branch', cmd('cp examples/quick-blog-workflow.yml .github/workflows/ai-review.yml'))}
-        ${row(5, C.y, 'Open the PR', 'analytics → workshop', cmd('gh pr create -R &lt;you&gt;/quick-blog -B workshop -H analytics -t Analytics -b \"\"'))}
+        ${row(4, C.y, 'Add the workflow', 'on the fork’s main', cmd('cp examples/quick-blog-workflow.yml .github/workflows/ai-review.yml'))}
+        ${row(5, C.y, 'Open the PR', 'analytics → main, in your fork', cmd('gh pr create -R &lt;you&gt;/quick-blog -B main -H analytics -t Analytics -b \"\"'))}
       `, { cls: 'turn setup' })}
-      ${at(716, '<span class="warnb">Untick “Copy the main branch only”: you need the workshop and analytics branches.</span>', { width: 990 })}`,
-  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow кладемо на гілку workshop, не main: main QuickBlog конфліктує з analytics, а на PR із конфліктами GitHub не запускає pull_request workflow. копіюємо examples/quick-blog-workflow.yml у .github/workflows/ai-review.yml на workshop, відкриваємо PR analytics → workshop. Результат: червона перевірка + inline-коментарі.', 'Fork QuickBlog, untick copy-main-only, add the secret, drop in the workflow file on main, then open the PR.'),
+      ${at(716, '<span class="warnb">Keep the analytics branch: untick “Copy the main branch only”.</span>', { width: 990 })}`,
+  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). копіюємо examples/quick-blog-workflow.yml у .github/workflows/ai-review.yml на main, відкриваємо PR analytics → main. Результат: червона перевірка + inline-коментарі.', 'Fork QuickBlog, untick copy-main-only, add the secret, drop in the workflow file on main, then open the PR.'),
 }));
 
 /* ================= STEP 4 ================= */

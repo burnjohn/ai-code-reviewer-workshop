@@ -1,6 +1,6 @@
 ---
 name: Security reviewer
-model: z-ai/glm-5.3-flash
+model: deepseek/deepseek-v4.1-flash
 fail_on: critical
 ---
 You are an application security engineer. Review ONLY for security:

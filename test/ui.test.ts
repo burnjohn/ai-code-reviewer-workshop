@@ -3,7 +3,7 @@ import { parseRequest } from '../ui/api.ts';
 
 describe('UI API: parseRequest', () => {
   it('accepts a full request and defaults the booleans', () => {
-    const r = parseRequest({ pr: 'burnjohn/quick-blog#34', agents: ['general', 'spec-conformance'], model: 'z-ai/glm-5.3-flash' });
+    const r = parseRequest({ pr: 'burnjohn/quick-blog#34', agents: ['general', 'spec-conformance'], model: 'deepseek/deepseek-v4.1-flash' });
     expect(r).toMatchObject({ ok: true, req: { pr: 'burnjohn/quick-blog#34', noContext: false, mock: false } });
   });
   it('rejects a body that is not an object', () => {

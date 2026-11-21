@@ -198,7 +198,7 @@
         <div class="st b" style="--h:220px"><i>Step 2</i><b>Read the whole repo</b><span>context beyond the diff</span></div>
         <div class="st g" style="--h:290px"><i>Step 3</i><b>Verify their own claims</b><span>shell commands across the repo before commenting</span></div>
         <div class="st g" style="--h:360px"><i>Step 4</i><b>Low noise</b><span>few comments, mostly real ones</span></div>
-        <div class="st now g" style="--h:440px"><i>Autumn 2026</i><b>Verify by running</b><span>Greptile TREX (GA 16.10), CodeRabbit Verify (beta 17.11): the app runs in a sandbox, you get a video</span></div>
+        <div class="st now g" style="--h:440px"><i>Autumn 2026</i><b>Should be checked</b><span>Greptile TREX (GA 16.10), CodeRabbit Verify (beta 17.11): the app runs in a sandbox, you get a video.<br><br>Someone else's experience, not ours: it's their solution, and their team is responsible for it.</span></div>
       </div>
       <div class="abs z2" style="left:112px;top:715px"><span class="label g">→ this becomes our parity checklist</span></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
@@ -260,7 +260,7 @@
           <div class="chk"><span>✓ build</span><span>✓ unit tests</span><span>✓ lint</span><span>✓ e2e</span></div>
         </div>
       </div>
-      <div class="abs win vid  z2" style="left:740px;top:270px;width:720px">
+      <div class="abs win vid  z2" style="left:760px;top:270px;width:640px">
         <div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">QuickBlog · analytics</span></div>
         <video src="media/analytics-demo-loop.mp4" autoplay loop muted playsinline preload="auto" aria-label="QuickBlog · analytics"></video>
       </div>
@@ -310,48 +310,68 @@
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
-  <!-- 11a · Tier 1–2 examples -->
+  <!-- 11a · Tier 1 defects -->
   <section class="slide" data-logo="dock" data-tint="mix">
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:96px;width:1380px">
-        <p class="kicker">1 · Experiment · tier 1–2 · it is in the diff, if you read it</p>
-        <h2 class="h sm" style="margin-bottom:0">Tier 1–2: the bug is right there in the diff</h2>
+        <p class="kicker" style="--c:var(--red-h)">1 · Experiment · tier 1 · high impact, directly visible in the diff</p>
+        <h2 class="h sm" style="margin-bottom:0">Tier 1: 5 defects you can see in the diff</h2>
       </div>
-      <div class="abs z2 dcard" style="left:112px;top:222px;width:675px;--c:var(--red-h)">
-        <div class="win mini"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>client/…/analytics/ExportButton.jsx:5</span><b class="rid">T1-2</b></div>
-<pre><span class="te">import { EXPORT_SIGNING_SECRET }</span>
-<span class="te">  from '../../../../../server/src/configs/analytics.js'</span></pre></div>
-        <p class="dwhy"><b>The signing key ships to every browser.</b> Client code imports a server secret, and Vite inlines it into the bundle.</p>
+      <div class="abs z2 dlist fill" style="left:112px;top:214px;width:1380px;--c:var(--red-h)">
+        <div class="drow"><span class="rid">T1-1</span><div><b>Hard-coded secrets committed</b><p>2 live keys sit as string literals in <code>server/src/configs/analytics.js</code>; the CSV export signs its responses with one of them.</p></div></div>
+        <div class="drow"><span class="rid">T1-2</span><div><b>Client imports the server signing secret</b><p><code>import { EXPORT_SIGNING_SECRET } from '…/server/src/configs/analytics.js'</code>, so Vite inlines the key into the browser bundle.</p></div></div>
+        <div class="drow"><span class="rid">T1-3</span><div><b>Bearer token written to logs</b><p><code>console.log('[analytics] auth header:', req.headers.authorization)</code> on every view. A token read from the logs can be replayed.</p></div></div>
+        <div class="drow"><span class="rid">T1-4</span><div><b>Stored XSS in recent comments</b><p>The comment excerpt is rendered with <code>dangerouslySetInnerHTML</code>: anonymous comment text runs as HTML in the admin's session.</p></div></div>
+        <div class="drow"><span class="rid">T1-5</span><div><b>Visitor identity taken from the request body</b><p><code>visitorKey</code> and <code>referrerSource</code> come from <code>req.body</code>: a fresh key on every request walks past the 24-hour deduplication.</p></div></div>
       </div>
-      <div class="abs z2 dcard" style="left:817px;top:222px;width:675px;--c:var(--red-h)">
-        <div class="win mini"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>…/tables/RecentCommentsTable.jsx:48</span><b class="rid">T1-4</b></div>
-<pre>&lt;p className="text-sm text-gray-600 mt-1"
-  <span class="tc">// keep formatting</span>
-  <span class="te">dangerouslySetInnerHTML={{</span>
-<span class="te">    __html: truncate(item.contentExcerpt, 50) }}</span> /&gt;</pre></div>
-        <p class="dwhy"><b>Stored XSS in the admin panel.</b> Anonymous comment text runs as HTML in the admin's session.</p>
-      </div>
-      <div class="abs z2 dcard" style="left:112px;top:458px;width:675px;--c:var(--blue-h)">
-        <div class="win mini"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>server/src/middleware/auth.js</span><b class="rid">T2-1</b></div>
-<pre><span class="tc">// adminRoutes.js</span>   adminRouter.use(auth)
-const decoded = jwt.verify(token, process.env.JWT_SECRET)
-req.user = decoded
-<span class="te">next()</span>   <span class="tc">// role is never checked</span></pre></div>
-        <p class="dwhy"><b>Any valid token reads all analytics.</b> The spec says admin role only; nothing looks at <code>role</code>.</p>
-      </div>
-      <div class="abs z2 dcard" style="left:817px;top:458px;width:675px;--c:var(--blue-h)">
-        <div class="win mini"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>server/migrations/…-add-blogview-indexes.js:39</span><b class="rid">T2-9</b></div>
-<pre>export async function down(db) {
-  <span class="te">await db.collection('blogviews').drop()</span>
-  <span class="tc">// log: 'Indexes removed successfully'</span>
-}</pre></div>
-        <p class="dwhy"><b>A routine rollback deletes every recorded view.</b> <code>up</code> adds 2 indexes, <code>down</code> drops the collection.</p>
-      </div>
-      <div class="abs z1" style="left:112px;top:722px;width:1000px"><p class="src">Real lines from quick-blog PR #31 @ f9d44c3 · the diff alone is enough to catch these</p></div>
+      <div class="abs z1" style="left:112px;top:766px;width:1000px"><p class="src" style="white-space:nowrap">Real defects · quick-blog PR #31 @ f9d44c3 · same code in #43 / #44</p></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
+
+  <!-- 11a2 · Tier 2 defects, part 1 -->
+  <section class="slide" data-logo="dock" data-tint="mix">
+    <div class="rig"><div class="tilt">
+      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
+      <div class="abs z1" style="left:112px;top:96px;width:1380px">
+        <p class="kicker" style="--c:var(--blue-h)">1 · Experiment · tier 2 · in the diff, if you read it carefully</p>
+        <h2 class="h sm" style="margin-bottom:0">Tier 2: 12 defects that need a careful read · 1/2</h2>
+      </div>
+      <div class="abs z2 dlist two fill" style="left:112px;top:214px;width:1380px;--c:var(--blue-h)">
+        <div class="drow"><span class="rid">T2-1</span><div><b>Analytics routes never check the admin role</b><p><code>auth.js</code> verifies the token and calls <code>next()</code>. Nothing looks at <code>role</code>, so any valid token reads every endpoint.</p></div></div>
+        <div class="drow"><span class="rid">T2-2</span><div><b>The correct implementation exists, unused</b><p><code>viewTracking.js</code> does exactly what the spec asks. Nothing imports it; the controller re-implements the same 3 rules and gets them wrong.</p></div></div>
+        <div class="drow"><span class="rid">T2-3</span><div><b>Global rate limit raised 100 → 300</b><p>Raised for the entire API to fit one chatty dashboard page, so login, comments and every public route get 3× the ceiling.</p></div></div>
+        <div class="drow"><span class="rid">T2-4</span><div><b>CSV formula injection not neutralized</b><p>A post titled <code>=HYPERLINK(…)</code> becomes a live formula the moment an admin opens the export in Excel or Sheets.</p></div></div>
+        <div class="drow"><span class="rid">T2-5</span><div><b>Custom date range drops the last day</b><p><code>to</code> is parsed as midnight, so the whole last day of every custom range is silently excluded. The numbers still look plausible.</p></div></div>
+        <div class="drow"><span class="rid">T2-6</span><div><b>Categories sorted ascending, the contract says descending</b><p><code>$sort: { views: 1 }</code>, and the client is told not to re-sort: the "Views by category" chart reads upside down.</p></div></div>
+      </div>
+      <div class="abs z1" style="left:112px;top:766px;width:1000px"><p class="src" style="white-space:nowrap">Real defects · quick-blog PR #31 @ f9d44c3 · same code in #43 / #44</p></div>
+      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
+    </div></div>
+  </section>
+
+  <!-- 11a3 · Tier 2 defects, part 2 -->
+  <section class="slide" data-logo="dock" data-tint="mix">
+    <div class="rig"><div class="tilt">
+      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
+      <div class="abs z1" style="left:112px;top:96px;width:1380px">
+        <p class="kicker" style="--c:var(--blue-h)">1 · Experiment · tier 2 · in the diff, if you read it carefully</p>
+        <h2 class="h sm" style="margin-bottom:0">Tier 2: 12 defects that need a careful read · 2/2</h2>
+      </div>
+      <div class="abs z2 dlist two fill" style="left:112px;top:214px;width:1380px;--c:var(--blue-h)">
+        <div class="drow"><span class="rid">T2-7</span><div><b><code>category</code> missing from the query dependencies</b><p>Changing the category never re-fetches the KPI cards: the charts update, the cards keep the old numbers.</p></div></div>
+        <div class="drow"><span class="rid">T2-8</span><div><b>30-second polling with no cleanup</b><p><code>setInterval(refetch, 30000)</code> inside an effect with no cleanup: every remount leaves another timer running forever.</p></div></div>
+        <div class="drow"><span class="rid">T2-9</span><div><b>Migration rollback drops the collection</b><p><code>down</code> calls <code>db.collection('blogviews').drop()</code>: a routine rollback deletes every recorded view.</p></div></div>
+        <div class="drow"><span class="rid">T2-10</span><div><b>The whole <code>process.env</code> serialized into the bundle</b><p><code>define: { 'process.env': JSON.stringify(process.env) }</code> would ship the build machine's environment to every visitor — the moment any client file reads <code>process.env</code>. Today none does.</p></div></div>
+        <div class="drow"><span class="rid">T2-11</span><div><b>A repeat view returns 400 instead of 200</b><p>A repeat visit is the normal case, yet the browser console and error monitoring fill up with failures.</p></div></div>
+        <div class="drow"><span class="rid">T2-12</span><div><b>The author's own views counted as public</b><p>Only <code>role === 'admin'</code> sets <code>isAdminView</code>, so authors re-reading their posts inflate the numbers.</p></div></div>
+      </div>
+      <div class="abs z1" style="left:112px;top:766px;width:1000px"><p class="src" style="white-space:nowrap">Real defects · quick-blog PR #31 @ f9d44c3 · same code in #43 / #44</p></div>
+      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
+    </div></div>
+  </section>
+
   <!-- 11b-pre · Tier 3 examples -->
   <section class="slide" data-logo="dock" data-tint="mix">
     <div class="rig"><div class="tilt">
@@ -395,6 +415,25 @@ if (previous === 0)              <span class="tc">// and current &gt; 0</span>
     </div></div>
   </section>
   <!-- 11b · Every planted defect, linked -->
+  <section class="slide" data-logo="dock" data-tint="green">
+    <div class="rig"><div class="tilt">
+      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
+      <div class="abs z1" style="left:112px;top:96px;width:1380px">
+        <p class="kicker" style="--c:var(--green-h)">1 · Experiment · traps · in the PR text, not in the code</p>
+        <h2 class="h sm" style="margin-bottom:0">3 traps: one to catch, two not to fall for</h2>
+      </div>
+      <div class="abs z2 dlist traps3" style="left:112px;top:222px;width:1380px">
+        <div class="drow" style="--c:var(--red-h)"><span class="rid">A1</span><div><b>Don't believe it: “keys are test fixtures, safe to commit”</b><p>Said twice: a comment above the keys in <code>configs/analytics.js</code> and a line in the PR description. The keys sign real CSV exports and ship to the browser. <em>Right answer:</em> flag them anyway — the spec forbids committed keys (AC-10.1).</p></div></div>
+        <div class="drow" style="--c:var(--green-h)"><span class="rid">A2</span><div><b>Catch it: “Covers: all acceptance criteria in the spec”</b><p>The PR description claims full coverage. Checked against the spec, 5 criteria are missing or partial: AC-1.2, 6.1, 6.5, 8.2, 9.2. <em>Right answer:</em> say the claim is false.</p></div></div>
+        <div class="drow" style="--c:var(--yellow-h)"><span class="rid">D1</span><div><b>Don't flag it: public <code>POST /view</code> with no auth</b><p>Looks like a hole — anyone can record a view. But the spec requires it (AC-6.2): anonymous readers must be counted. <em>Right answer:</em> stay quiet. Flagging it is a false positive.</p></div></div>
+      </div>
+      <div class="abs z1" style="left:112px;top:716px;width:1000px">
+        <p class="body" style="font-size:24px;line-height:1.3;max-width:none">Traps test judgement, not bug-finding.<br><span class="c-y">Does the reviewer trust the author — or the spec?</span></p>
+      </div>
+      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
+    </div></div>
+  </section>
+
   <section class="slide" data-logo="dock" data-tint="mix">
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
@@ -402,7 +441,7 @@ if (previous === 0)              <span class="tc">// and current &gt; 0</span>
         <p class="kicker">1 · Experiment · ground truth · written for #31 @ f9d44c3 · same defects in #43/#44 · scroll</p>
         <h2 class="h sm" style="margin-bottom:0">Every planted defect, with a link to the code</h2>
       </div>
-      <div class="abs z2 scrolltbl" style="left:112px;top:215px;width:1380px;height:478px">
+      <div class="abs z2 scrolltbl" style="left:112px;top:215px;width:1380px;height:466px">
         <table class="tbl gt">
           <thead><tr><th>ID</th><th>Defect · why it's wrong</th><th>Spec</th><th>Code</th></tr></thead>
           <tbody>
@@ -458,24 +497,26 @@ if (previous === 0)              <span class="tc">// and current &gt; 0</span>
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:100px;width:1380px">
-        <p class="kicker">1 · Experiment · PR #43 + #44, same code · 28 defects + 3 traps · min–max of 2 runs</p>
+        <p class="kicker">1 · Experiment · PR #43 + #44, same code · 28 defects + 3 traps · <span class="c-b">click a row for details</span></p>
         <h2 class="h sm">Same spec, cheapest model, frontier result</h2>
       </div>
-      <div class="abs z2" style="left:112px;top:222px;width:1380px">
-        <table class="tbl res">
+      <div class="abs z2" style="left:112px;top:226px;width:1380px">
+        <table class="tbl res rv">
           <tr><th>Reviewer · model</th><th class="num-c">Obvious T1 /5</th><th class="num-c">Contract T2 /12</th><th class="num-c">Hidden T3 /11</th><th class="num-c">Found /28</th><th class="num-c">Traps /3</th><th class="num-c">$ / run</th></tr>
-          <tr class="me"><td>CodeRabbit<small class="mdl">undisclosed</small></td><td class="num-c">4–5</td><td class="num-c">6–9</td><td class="num-c">2–3</td><td class="num-c"><b>12–17</b></td><td class="num-c">2</td><td class="num-c">$0–20</td></tr>
-          <tr class="me"><td>Greptile<small class="mdl">undisclosed</small></td><td class="num-c">4</td><td class="num-c">10–11</td><td class="num-c">6–7</td><td class="num-c"><b>20–22</b></td><td class="num-c">1</td><td class="num-c">~$1</td></tr>
-          <tr class="me"><td>Claude Opus<small class="mdl">opus-5.5</small></td><td class="num-c">5</td><td class="num-c">12</td><td class="num-c">9</td><td class="num-c"><b>26</b></td><td class="num-c"><b>3</b></td><td class="num-c">$0.93</td></tr>
-          <tr class="me"><td>Claude Sonnet<small class="mdl">sonnet-5.5</small></td><td class="num-c">4</td><td class="num-c">5</td><td class="num-c">2</td><td class="num-c"><b>11</b></td><td class="num-c">2</td><td class="num-c">$0.19</td></tr>
-          <tr class="me"><td>Codex<small class="mdl">gpt-6.1-terra</small></td><td class="num-c">3</td><td class="num-c">10</td><td class="num-c">3</td><td class="num-c"><b>16</b></td><td class="num-c">1</td><td class="num-c">~$0.13</td></tr>
-          <tr class="me"><td>DevDigest · General<small class="mdl">deepseek-v4-flash</small></td><td class="num-c">5</td><td class="num-c">9</td><td class="num-c">4</td><td class="num-c"><b>18</b></td><td class="num-c">2</td><td class="num-c">$0.02</td></tr>
-          <tr class="me"><td>DevDigest · Spec<small class="mdl">deepseek-v4-flash</small></td><td class="num-c">5</td><td class="num-c">11</td><td class="num-c">10</td><td class="num-c"><b>26</b></td><td class="num-c"><b>3</b></td><td class="num-c"><b>$0.01</b></td></tr>
+          <tr class="me" data-rv="coderabbit" tabindex="0"><td>CodeRabbit<small class="mdl">model undisclosed</small></td><td class="num-c">4–5</td><td class="num-c">6–9</td><td class="num-c">2–3</td><td class="num-c"><b>12–17</b></td><td class="num-c">2</td><td class="num-c">$0–20</td></tr>
+          <tr class="me" data-rv="greptile" tabindex="0"><td>Greptile<small class="mdl">model undisclosed</small></td><td class="num-c">4</td><td class="num-c">10–11</td><td class="num-c">6–7</td><td class="num-c"><b>20–22</b></td><td class="num-c">1</td><td class="num-c">~$1</td></tr>
+          <tr class="me" data-rv="opus" tabindex="0"><td>Claude<small class="mdl">Opus 5.5</small></td><td class="num-c">5</td><td class="num-c">12</td><td class="num-c">9</td><td class="num-c"><b>26</b></td><td class="num-c"><b>3</b></td><td class="num-c">$0.93</td></tr>
+          <tr class="me" data-rv="sonnet" tabindex="0"><td>Claude<small class="mdl">Sonnet 5.5</small></td><td class="num-c">4</td><td class="num-c">5</td><td class="num-c">2</td><td class="num-c"><b>11</b></td><td class="num-c">2</td><td class="num-c">$0.19</td></tr>
+          <tr class="me" data-rv="sol" tabindex="0"><td>Codex<small class="mdl">GPT-6.1 Sol</small></td><td class="num-c">5</td><td class="num-c">11</td><td class="num-c">5</td><td class="num-c"><b>21</b></td><td class="num-c">2</td><td class="num-c">~$0.32</td></tr>
+          <tr class="me" data-rv="terra" tabindex="0"><td>Codex<small class="mdl">GPT-6.1 Terra</small></td><td class="num-c">3</td><td class="num-c">10</td><td class="num-c">3</td><td class="num-c"><b>16</b></td><td class="num-c">1</td><td class="num-c">~$0.13</td></tr>
+          <tr class="me" data-rv="luna" tabindex="0"><td>Codex<small class="mdl">GPT-6 Luna</small></td><td class="num-c">2</td><td class="num-c">10</td><td class="num-c">2</td><td class="num-c"><b>14</b></td><td class="num-c">1</td><td class="num-c">~$0.03</td></tr>
+          <tr class="me" data-rv="ddgen" tabindex="0"><td>DevDigest · General<small class="mdl">DeepSeek V4 Flash</small></td><td class="num-c">5</td><td class="num-c">9</td><td class="num-c">4</td><td class="num-c"><b>18</b></td><td class="num-c">2</td><td class="num-c">$0.02</td></tr>
+          <tr class="me" data-rv="ddspec" tabindex="0"><td>DevDigest · Spec<small class="mdl">DeepSeek V4 Flash</small></td><td class="num-c">5</td><td class="num-c">11</td><td class="num-c">10</td><td class="num-c"><b>26</b></td><td class="num-c"><b>3</b></td><td class="num-c"><b>$0.01</b></td></tr>
         </table>
-        <p class="src" style="margin-top:8px;font-size:15px"><b>DevDigest · Spec = same tool, different task: check every AC</b> · <a href="https://www.coderabbit.ai/pricing" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">CodeRabbit</a>: in the $72–90 seat · <a href="https://www.greptile.com/pricing" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Greptile</a>: $1 credit · DevDigest on v4-pro: General 12, Spec 26 for $0.09–0.19 · Claude, Codex: 1 run, plain prompt, list price · Codex Sol 21/28 for $0.32, Luna 14/28 for $0.03 · traps: next slide</p>
+        <p class="src" style="margin-top:8px;font-size:15px"><b>DevDigest · Spec = same tool, different task: check every AC</b> · ranges = 2 runs on the same code · ~ = estimated from tokens × list price · <button type="button" class="rv-how" data-rv="how">How to read these numbers ›</button></p>
       </div>
-      <div class="abs z2" style="left:112px;top:705px;width:1010px">
-        <p class="body" style="font-size:30px;max-width:none"><b>The model sets the ceiling.</b><br><span class="c-y">The harness decides how close you get — and what you pay.</span></p>
+      <div class="abs z2" style="left:112px;top:730px;width:1010px">
+        <p class="body" style="font-size:25px;line-height:1.3;max-width:none"><b>The model sets the ceiling.</b><br><span class="c-y">The harness decides how close you get — and what you pay.</span></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -583,6 +624,7 @@ endpoint and an admin dashboard.
         <p class="kicker" style="--c:var(--red-h)">Block 2</p>
         <h2 class="h1">What's <span class="shine">barely checked</span></h2>
         <p class="lead">Intent, scope, regressions, the UI</p>
+        <p class="note" style="margin-top:28px;max-width:760px">Standard tools struggle here, Claude Code and Codex included. Most projects have no documentation of how features work and no written requirements, so a reviewer can only guess the intent.</p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -594,7 +636,7 @@ endpoint and an admin dashboard.
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:100px;width:1380px">
         <p class="kicker" style="--c:var(--red-h)">2 · Gap</p>
-        <h2 class="h sm">Clean code, no vulns — and still…</h2>
+        <h2 class="h sm">Clean code, no vulnerabilities — and still…</h2>
       </div>
       <div class="abs z2 pv2" style="left:112px;top:235px;width:1380px">
         <div class="col">
@@ -615,7 +657,7 @@ endpoint and an admin dashboard.
       </div>
       <div class="abs z2 row" style="left:112px;top:640px;width:1000px;gap:24px;flex-wrap:nowrap">
         <div class="stat" style="--c:var(--red-h);font-size:64px">56.3%</div>
-        <p class="note" style="font-size:21px">of CodeRabbit comments rejected in real repos (31k comments) — reasons include <b style="color:var(--tx)">out of scope</b> and <b style="color:var(--tx)">misread intent</b>. <span class="src">arXiv 2607.03316</span></p>
+        <p class="note" style="font-size:21px">of CodeRabbit comments rejected in real repositories (31k comments) — reasons include <b style="color:var(--tx)">out of scope</b> and <b style="color:var(--tx)">misread intent</b>. <span class="src">arXiv 2607.03316</span></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -627,26 +669,26 @@ endpoint and an admin dashboard.
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:110px;width:1380px">
         <p class="kicker">2 · Gap · to be fair</p>
-        <h2 class="h sm">The market already checks the ticket — partly</h2>
+        <h2 class="h sm">Some AI reviewers already read the ticket — partly</h2>
         <p class="note" style="margin-top:-12px">What a reviewer reads, from least to most:</p>
       </div>
       <div class="abs z2" style="left:112px;top:310px;width:1380px">
         <div style="display:grid;grid-template-columns:4fr 3fr;gap:8px;margin-bottom:12px">
-          <div class="brk b" style="--c:var(--blue-h)"><span>the market today</span></div>
-          <div class="brk r" style="--c:var(--red-h)"><span>not in any docs I found</span></div>
+          <div class="brk b" style="--c:var(--blue-h)"><span>ready-made AI reviewers today</span></div>
+          <div class="brk r" style="--c:var(--red-h)"><span>no tool documents this</span></div>
         </div>
         <div class="spec">
           <div class="s">the diff</div>
           <div class="s">changed files</div>
           <div class="s">the ticket text<small>addressed / not / unclear</small></div>
-          <div class="s">the whole repo<small>verify with commands</small></div>
+          <div class="s">the whole repository<small>verify with commands</small></div>
           <div class="s gap">API contract<small>vs the spec</small></div>
           <div class="s gap">the <code>Covers:</code> claim<small>is it true?</small></div>
           <div class="s gap">the running UI<small>vs the spec</small></div>
         </div>
       </div>
       <div class="abs z2" style="left:112px;top:520px;width:1100px">
-        <p class="src" style="margin-bottom:12px">Ticket-aware today:</p>
+        <p class="src" style="margin-bottom:12px">Reviewers that read the ticket today:</p>
         <div class="chips b"><span class="chip">CodeRabbit</span><span class="chip">Greptile ↔ Linear</span><span class="chip">Atlassian Code Reviewer</span><span class="chip">Qodo</span><span class="chip">cubic</span></div>
       </div>
       <div class="abs z1" style="left:112px;top:680px;width:1000px"><p class="body" style="font-size:30px">Not <i>nobody</i> — but the gap is still wide.</p></div>
@@ -659,11 +701,11 @@ endpoint and an admin dashboard.
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="" style="left:62px;top:66px;width:706px;height:768px"></div>
       <div class="panel" data-shape="notch-br:403:131" style="left:830px;top:66px;width:706px;height:768px"></div>
-      <div class="abs z1" style="left:112px;top:100px;width:610px">
+      <div data-dfx-zone="T3-1" class="abs z1" style="left:112px;top:100px;width:610px">
         <p class="kicker" style="--c:var(--blue-h)">T3-1 · intent</p>
         <h2 class="h" style="font-size:44px;margin:0">The feature measures nothing</h2>
       </div>
-      <div class="abs z2 chain" style="left:112px;top:245px;width:610px">
+      <div data-dfx-zone="T3-1" class="abs z2 chain" style="left:112px;top:245px;width:610px">
         <div class="node2 b">BlogDetail.jsx<small>client · opens a post</small></div>
         <div class="lk miss"><span class="mark no">✗</span><span>POST /view is never sent</span></div>
         <div class="node2 b">route <span class="mark ok">✓</span></div>
@@ -672,13 +714,13 @@ endpoint and an admin dashboard.
         <div class="lk"></div>
         <div class="node2 b">model + indexes <span class="mark ok">✓</span></div>
       </div>
-      <div class="abs z1" style="left:112px;top:660px;width:610px"><p class="body" style="font-size:26px">Every part works. Nothing calls it.<br><span class="c-b">“There is no wrong line to point at.”</span></p></div>
+      <div class="abs z1" style="left:112px;top:660px;width:610px"><p class="body" style="font-size:26px">Every part works. Nothing calls it.<br><span class="c-b">“There is no wrong line to point at.”</span></p><p class="note" style="margin-top:10px">Hard to notice: code can be clean and still not work.</p></div>
 
-      <div class="abs z1" style="left:880px;top:100px;width:600px">
+      <div data-dfx-zone="T3-10" class="abs z1" style="left:880px;top:100px;width:600px">
         <p class="kicker" style="--c:var(--yellow-h)">T3-10 · scope</p>
         <h2 class="h" style="font-size:44px;margin:0">Dashboard rewritten</h2>
       </div>
-      <div class="abs z2 ftree2" style="left:880px;top:248px;width:606px">
+      <div data-dfx-zone="T3-10" class="abs z2 ftree2" style="left:880px;top:248px;width:606px">
         <div class="scope2"><b>in scope · analytics</b>
           <div>pages/admin/Analytics.jsx</div>
           <div>components/admin/analytics/…</div>
@@ -689,7 +731,7 @@ endpoint and an admin dashboard.
         <div class="out">components/admin/dashboard/StatCard.jsx</div>
         <div class="out">server/…/adminController.js</div>
       </div>
-      <div class="abs z1" style="left:880px;top:628px;width:600px"><p class="body" style="font-size:26px">Clean, working code — <span class="c-y">never part of this task.</span><br>“Scope is a review dimension.”</p></div>
+      <div class="abs z1" style="left:880px;top:628px;width:610px"><p class="body" style="font-size:22px">Clean, working code — <span class="c-y">almost never part of this task.</span><br>“Scope is a review dimension.”</p></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
@@ -753,19 +795,19 @@ endpoint and an admin dashboard.
         <h2 class="h">Not a bug hunt</h2>
       </div>
       <svg class="abs z1 wires" width="1600" height="900" viewBox="0 0 1600 900" style="left:0;top:0" aria-hidden="true">
-        <path class="wire b" d="M560 300 L 700 300"/><path class="wire b" d="M960 300 L 1100 300"/>
-        <path class="wire g" d="M1100 460 L 960 460"/><path class="wire g" d="M700 460 L 560 460"/>
+        <path class="wire b" d="M512 318 L 592 318"/><path class="wire b" d="M992 318 L 1072 318"/>
+        <path class="wire g" d="M512 488 L 592 488"/><path class="wire g" d="M992 488 L 1072 488"/>
       </svg>
-      <p class="abs z1 colcap" style="left:112px;top:240px">Bug hunt · reads outward</p>
-      <div class="node2 z2 b" style="left:300px;top:268px;width:260px">the diff<small>what was written</small></div>
-      <div class="node2 z2 b" style="left:700px;top:268px;width:260px">what's wrong in it?<small>bugs · vulns · style</small></div>
-      <div class="node2 z2 b" style="left:1100px;top:268px;width:380px">findings on changed lines</div>
-      <p class="abs z1 colcap c-g" style="left:112px;top:400px">Spec conformance · reads inward</p>
-      <div class="node2 z2 g" style="left:300px;top:428px;width:260px">verdict per criterion<small>incl. <code>Covers:</code> true/false</small></div>
-      <div class="node2 z2 g" style="left:700px;top:428px;width:260px">where is each one?<small>trace into the code</small></div>
-      <div class="node2 z2 solid g" style="left:1100px;top:428px;width:380px">acceptance criteria<small>what was asked</small></div>
-      <div class="abs z1" style="left:112px;top:570px;width:1100px">
-        <p class="body">A diff only contains what was done. What's <b>missing</b> isn't in it.</p>
+      <p class="abs z1 colcap" style="left:112px;top:236px">Bug hunt · starts from the code</p>
+      <div class="node2 z2 b" style="left:112px;top:268px;width:400px">the diff<small>what was written</small></div>
+      <div class="node2 z2 b" style="left:592px;top:268px;width:400px">what's wrong in these lines?<small>bugs · vulnerabilities · style</small></div>
+      <div class="node2 z2 b" style="left:1072px;top:268px;width:410px">findings on changed lines<small>e.g. stored XSS, token in logs</small></div>
+      <p class="abs z1 colcap c-g" style="left:112px;top:406px">Spec conformance · starts from the task</p>
+      <div class="node2 z2 solid g" style="left:112px;top:438px;width:400px">acceptance criteria<small>what was asked</small></div>
+      <div class="node2 z2 g" style="left:592px;top:438px;width:400px">where is each one in the code?<small>trace it to file:line</small></div>
+      <div class="node2 z2 g" style="left:1072px;top:438px;width:410px">verdict per criterion<small>done · partial · <b>missing</b> — e.g. AC-6.1: client never sends POST /view</small></div>
+      <div class="abs z1" style="left:112px;top:604px;width:1000px">
+        <p class="body">A diff only contains what was done. What's <b>missing</b> isn't in it — so only the second row can find it.</p>
         <blockquote class="quote" style="margin-top:20px;--c:var(--green-h);font-size:26px">“plausible patches that omit required behavior”<cite>arXiv 2610.01023</cite></blockquote>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
@@ -777,14 +819,14 @@ endpoint and an admin dashboard.
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:110px;width:1380px">
-        <p class="kicker">3 · DevDigest agents on the same PR · 28 core defects</p>
+        <p class="kicker">3 · DevDigest agents on PR #44 · same cheap model, DeepSeek V4 Flash · 28 defects</p>
         <h2 class="h sm">The mix matters, not the number of agents</h2>
       </div>
       <div class="abs z2 hbars" style="left:112px;top:260px;width:1360px">
-        <div class="hb b"><div class="lbl">8 diff agents</div><div class="track"><div class="fill" style="--w:78.6%"></div></div><div class="val">22/28</div></div>
-        <div class="hb g"><div class="lbl">1 spec agent<small>barely overlaps with the 8</small></div><div class="track"><div class="fill" style="--w:78.6%"></div></div><div class="val">22/28</div></div>
-        <div class="hb y"><div class="lbl">all 9 together</div><div class="track"><div class="fill" style="--w:96.4%"></div></div><div class="val">27/28</div></div>
-        <div class="hb r"><div class="lbl">General + Spec<small>~29% of the cost</small></div><div class="track"><div class="fill" style="--w:92.9%"></div></div><div class="val">26/28</div></div>
+        <div class="hb b"><div class="lbl">2 diff agents<small>General + Security · $0.027</small></div><div class="track"><div class="fill" style="--w:71.4%"></div></div><div class="val">20/28</div></div>
+        <div class="hb g"><div class="lbl">1 spec agent<small>Spec Conformance · $0.012</small></div><div class="track"><div class="fill" style="--w:92.9%"></div></div><div class="val">26/28</div></div>
+        <div class="hb y"><div class="lbl">General + Spec<small>$0.032 · the mix I run</small></div><div class="track"><div class="fill" style="--w:96.4%"></div></div><div class="val">27/28</div></div>
+        <div class="hb r"><div class="lbl">all 3 together<small>$0.040 · Security adds nothing</small></div><div class="track"><div class="fill" style="--w:96.4%"></div></div><div class="val">27/28</div></div>
       </div>
       <div class="abs z1" style="left:112px;top:660px;width:1000px">
         <p class="src"><b>Counterpoint</b> · InfoQ pilot, human reviewers: the spec didn't raise recall (0.525 vs 0.518), but 81% of comments got tied to a specific requirement (vs 0%).</p>
@@ -909,7 +951,7 @@ Spec: analytics-dashboard
       <p class="abs z2" style="left:832px;top:428px;margin:0;font:300 16px var(--mono);color:var(--tx2)">pick a model per agent</p>
       <div class="abs z1" style="left:1150px;top:232px;width:340px;height:240px;border-radius:22px;border:1px solid rgba(92,219,109,.38);background:rgba(92,219,109,.07)"></div>
       <p class="abs z2" style="left:1172px;top:246px;margin:0;font:500 17px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:#f4f5f7"><span style="display:inline-block;width:26px;height:26px;line-height:26px;border-radius:50%;background:var(--green-h);color:#0b0c0f;font-weight:700;text-align:center;margin-right:10px">3</span>Light models</p>
-      <div class="node2 z2 g" style="left:1172px;top:292px;width:270px">Gemini 3.8 Flash<small>$0.75 / $3.75 per 1M</small></div>
+      <div class="node2 z2 g" style="left:1172px;top:292px;width:270px">DeepSeek V4 Flash<small>$0.044 / $0.132 per 1M</small></div>
       <div class="node2 z2 ghost" style="left:1172px;top:388px;width:270px;font-size:20px">…or any other model</div>
       <div class="abs z2 grid g3" style="left:112px;top:506px;width:1380px;gap:18px">
         <div class="box b sm"><span class="tag">My checks</span><br>I decide what gets reviewed: my rules, my spec.</div>
@@ -925,71 +967,60 @@ Spec: analytics-dashboard
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:110px;width:1380px">
-        <p class="kicker" style="--c:var(--yellow-h)">4 · Why · public numbers for scale</p>
+        <p class="kicker" style="--c:var(--yellow-h)">4 · Why · our runs · same PR · one review at list price</p>
         <h2 class="h sm">What one review costs</h2>
       </div>
-      <div class="abs z2 dp" style="left:112px;top:235px;width:1380px">
-        <div class="grid-l" style="left:calc(420px + (100% - 420px) * .193)"></div>
-        <div class="grid-l" style="left:calc(420px + (100% - 420px) * .404)"></div>
-        <div class="grid-l" style="left:calc(420px + (100% - 420px) * .596)"></div>
-        <div class="grid-l" style="left:calc(420px + (100% - 420px) * .807)"></div>
-        <div class="rw b"><div class="lb">DevDigest, 2 agents<small>mine</small></div><div class="tr"><i class="dot" style="left:22.4%"></i><span class="val c-b" style="left:22.4%">~$0.36</span></div></div>
-        <div class="rw g"><div class="lb">Cursor Bugbot<small>vendor data</small></div><div class="tr"><i class="rng" style="left:40.4%;width:7.1%"></i><span class="val" style="left:47.5%">$1.00–1.50</span></div></div>
-        <div class="rw g"><div class="lb">Cloudflare<small>in-house, average</small></div><div class="tr"><i class="dot" style="left:43.4%"></i><span class="val" style="left:43.4%">$1.19</span></div></div>
-        <div class="rw y"><div class="lb">Wealthfront<small>in-house · prosecution / defense / judge</small></div><div class="tr"><i class="dot" style="left:64.7%"></i><span class="val" style="left:64.7%">~$4</span></div></div>
-        <div class="rw r"><div class="lb">Claude <code>/code-review ultra</code></div><div class="tr"><i class="rng" style="left:68.6%;width:28.2%"></i><span class="val" style="left:68.6%;transform:translate(0,-180%)">~$5–25</span></div></div>
-        <div class="axis"><div></div><div class="tr"><span style="left:0">$0.10</span><span style="left:19.3%">$0.30</span><span style="left:40.4%">$1</span><span style="left:59.6%">$3</span><span style="left:80.7%">$10</span></div></div>
+      <div class="abs z2 dp cost" style="left:112px;top:226px;width:1380px">
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.137)"></div>
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.288)"></div>
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.425)"></div>
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.575)"></div>
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.712)"></div>
+        <div class="grid-l" style="left:calc(300px + (100% - 300px - 150px) * 0.863)"></div>
+        <div class="rw b"><div class="lb">DevDigest · Spec<small>DeepSeek V4 Flash</small></div><div class="tr"><i class="dot" style="left:2.3%"></i><span class="val" style="left:2.3%">$0.012 · <b>26</b>/28</span></div><div class="pm">$1.20</div></div>
+        <div class="rw b"><div class="lb">DevDigest · General<small>DeepSeek V4 Flash</small></div><div class="tr"><i class="dot" style="left:8.7%"></i><span class="val" style="left:8.7%">$0.02 · <b>18</b>/28</span></div><div class="pm">$2</div></div>
+        <div class="rw g"><div class="lb">Codex<small>GPT-6 Luna</small></div><div class="tr"><i class="dot" style="left:13.7%"></i><span class="val" style="left:13.7%">~$0.03 · <b>14</b>/28</span></div><div class="pm">~$3</div></div>
+        <div class="rw g"><div class="lb">Codex<small>GPT-6.1 Terra</small></div><div class="tr"><i class="dot" style="left:32.0%"></i><span class="val" style="left:32.0%">~$0.13 · <b>16</b>/28</span></div><div class="pm">~$13</div></div>
+        <div class="rw g"><div class="lb">Claude<small>Sonnet 5.5</small></div><div class="tr"><i class="dot" style="left:36.8%"></i><span class="val" style="left:36.8%">$0.19 · <b>11</b>/28</span></div><div class="pm">$19</div></div>
+        <div class="rw g"><div class="lb">Codex<small>GPT-6.1 Sol</small></div><div class="tr"><i class="dot" style="left:43.3%"></i><span class="val" style="left:43.3%">~$0.32 · <b>21</b>/28</span></div><div class="pm">~$32</div></div>
+        <div class="rw g"><div class="lb">Claude<small>Opus 5.5</small></div><div class="tr"><i class="dot" style="left:56.6%"></i><span class="val" style="left:56.6%">$0.93 · <b>26</b>/28</span></div><div class="pm">$93</div></div>
+        <div class="rw r"><div class="lb">Greptile<small>$1 per credit · 1–10 per review</small></div><div class="tr"><i class="rng" style="left:57.5%;width:28.8%"></i><span class="val" style="left:57.5%;transform:translate(calc(-100% - 18px),-50%)">~$1–10 · <b>20–22</b>/28</span></div><div class="pm">$100+</div></div>
+        <div class="rw r"><div class="lb">CodeRabbit<small>$0 inside the $72–90 seat</small></div><div class="tr"><i class="dot" style="left:95.1%"></i><span class="val" style="left:95.1%;transform:translate(calc(-100% - 18px),-50%)">~$20 over the limit · <b>12–17</b>/28</span></div><div class="pm">$90 / seat</div></div>
+        <div class="axis"><div></div><div class="tr"><span style="left:0.0%">$0.01</span><span style="left:13.7%">$0.03</span><span style="left:28.8%">$0.10</span><span style="left:42.5%">$0.30</span><span style="left:57.5%">$1</span><span style="left:71.2%">$3</span><span style="left:86.3%">$10</span></div><div class="pm h">100 PRs / mo ↑</div></div>
       </div>
-      <div class="abs z1" style="left:112px;top:680px;width:1000px">
-        <p class="note">Log scale. Different needs → different reviewers: not “they're bad”, they're built for other trade-offs.</p>
+      <div class="abs z1" style="left:112px;top:724px;width:1000px">
+        <p class="note" style="margin:0;font-size:15px;line-height:1.5;white-space:nowrap">Log scale · ~ = estimated from tokens × list price · score = defects found, of 28 · blue = mine</p>
+        <p class="note" style="margin:2px 0 0;font-size:20px;color:var(--tx)"><b>Same score, 26/28: $0.012 vs $0.93 — 77× apart.</b></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
-
-  <!-- 27 · Parity checklist -->
-  <section class="slide" data-logo="dock" data-tint="mix">
-    <div class="rig"><div class="tilt">
-      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
-      <div class="abs z1" style="left:112px;top:96px;width:1380px">
-        <p class="kicker" style="--c:var(--blue-h)">4 · The goal: the same level as ready-made tools</p>
-        <h2 class="h sm">Ready-made reviewers do this. So does mine.</h2>
-      </div>
-      <div class="abs z2" style="left:112px;top:215px;width:1380px">
-        <table class="tbl hov" style="font-size:23px">
-          <tr><th>What ready-made reviewers do</th><th>How DevDigest does the same</th><th>Where in the code</th></tr>
-          <tr><td>See context beyond the diff</td><td class="tx2">repo map + affected callers, token-budgeted</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/repo-intel/pipeline/repo-map.ts" target="_blank" rel="noopener">repo-map.ts ↗</a></td></tr>
-          <tr><td>Structured inline comments</td><td class="tx2">JSON schema outside the prompt</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/llm/structured.ts#L19" target="_blank" rel="noopener">structured.ts:19 ↗</a></td></tr>
-          <tr><td>Few made-up findings</td><td class="tx2">grounding gate</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/grounding.ts#L52" target="_blank" rel="noopener">grounding.ts:52 ↗</a></td></tr>
-          <tr><td>Handle big PRs</td><td class="tx2">map-reduce per file</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/run.ts#L30" target="_blank" rel="noopener">run.ts:30 ↗</a></td></tr>
-          <tr><td>Learn from the team's reactions</td><td class="tx2">memory + evals</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/reviews/findings.ts#L42" target="_blank" rel="noopener">findings.ts:42 ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/tree/full-functionality/evals" target="_blank" rel="noopener">evals/ ↗</a></td></tr>
-          <tr><td>Run in CI with no human</td><td class="tx2">GitHub Action, one engine</td><td><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/ci/workflow.ts" target="_blank" rel="noopener">workflow.ts ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/tree/full-functionality/agent-runner" target="_blank" rel="noopener">agent-runner/ ↗</a></td></tr>
-          <tr><td>Verify claims / run the code</td><td class="tx2"><span class="tbd">not yet · next step</span></td><td></td></tr>
-        </table>
-      </div>
-      <div class="abs z2" style="left:112px;top:722px;display:flex;align-items:center;gap:22px"><span class="label g">6 of 7 already built</span><span style="font:400 22px var(--font);color:var(--tx2)">Still missing: running the code. Extra: review against the spec.</span></div>
-      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
-    </div></div>
-  </section>
-
-  <!-- 28 · How we chose features -->
-  <section class="slide" data-logo="dock" data-tint="green">
+  <!-- 26b · Company code: same models, hosted in the EU -->
+  <section class="slide" data-logo="dock" data-tint="yellow">
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:110px;width:1380px">
-        <p class="kicker" style="--c:var(--green-h)">4 · Build order</p>
-        <h2 class="h">UI → any tool → CI</h2>
+        <p class="kicker" style="--c:var(--yellow-h)">4 · Why · the fine print on those cents</p>
+        <h2 class="h sm">Company code? Same models, hosted in Europe</h2>
       </div>
-      <div class="abs z2 flow" style="left:112px;top:290px;width:1380px">
-        <div class="node"><span class="cap">1 · see it</span><div class="box y" style="width:360px">UI for reviews<small>DevDigest · findings · compare agents · cost</small></div></div>
-        <span class="arr b"></span>
-        <div class="node"><span class="cap">2 · fast loop</span><div class="box b" style="width:360px">Run from any tool<small>MCP + pre-push CLI · check before push</small></div></div>
-        <span class="arr g"></span>
-        <div class="node"><span class="cap">3 · trust it</span><div class="box solid g" style="width:360px">CI<small style="color:#0b0c0f">every PR · no human to forget</small></div></div>
+      <div class="abs z2 grid g3 tight eu3" style="left:112px;top:232px;width:1380px;gap:16px">
+        <div class="box g sm"><span class="tag">My runs · side projects: fine</span><br>DeepSeek V4 Flash, default routing: $0.03 / review (General + Spec). V4 Pro in CI: $0.16.</div>
+        <div class="box r sm"><span class="tag">Not DeepSeek's own API</span><br>It runs in China: every diff goes there.</div>
+        <div class="box b sm"><span class="tag">Or self-host · cheapest</span><br>Same open weights on your EU GPUs: code never leaves.</div>
       </div>
-      <div class="abs z2" style="left:112px;top:520px;width:1380px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font:300 18px var(--mono);color:var(--tx2);margin-right:6px">MCP tools:</span><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">list_agents</code><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">run_agent_on_pr</code><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">get_findings</code><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">get_conventions</code><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">get_blast_radius</code><code style="font:400 17px var(--mono);color:var(--blue-h);padding:6px 12px;border-radius:10px;border:1px solid rgba(87,202,255,.35);background:rgba(87,202,255,.07)">get_onboarding_tour</code></div>
-      <div class="abs z1" style="left:112px;top:600px;width:1000px">
-        <p class="body">“Local is nice, but only CI results are something you can trust.”</p>
+      <div class="abs z2" style="left:112px;top:394px;width:1380px">
+        <table class="tbl eu" style="font-size:19px">
+          <tr><th>Model · for which reviewer</th><th>Hosted in Europe by</th><th class="num-c">$ in / out · 1M</th><th class="num-c">≈ per review</th></tr>
+          <tr><td>DeepSeek V4 Flash <span class="tx2">· narrow rule agents</span></td><td class="tx2">Inceptron</td><td class="num-c">$0.13 / $0.50</td><td class="num-c c-g">~$0.04</td></tr>
+          <tr><td>GLM 5.3 Flash <span class="tx2">· security, performance</span></td><td class="tx2">Inceptron</td><td class="num-c">$0.16 / $0.50</td><td class="num-c c-g">~$0.05</td></tr>
+          <tr><td>Devstral 2 <span class="tx2">· general code review</span></td><td class="tx2">Mistral 🇫🇷</td><td class="num-c">$0.40 / $2.00</td><td class="num-c c-g">~$0.16</td></tr>
+          <tr><td>Kimi K2.7 Code <span class="tx2">· main code reviewer</span></td><td class="tx2">Inceptron</td><td class="num-c">$0.61 / $3.55</td><td class="num-c c-g">~$0.28</td></tr>
+          <tr><td>GLM 5.3 <span class="tx2">· spec conformance, judge</span></td><td class="tx2">Inceptron · Mistral</td><td class="num-c">$1.05 / $3.50</td><td class="num-c c-y">~$0.31</td></tr>
+        </table>
+      </div>
+      <div class="abs z1" style="left:112px;top:686px;width:990px">
+        <p class="note" style="font-size:16px"><code>eu.openrouter.ai</code>: same key, EU/EEA, UK, CH only, no fallback outside (Business plan). V4 Pro isn't on it. EU prices, Nov 2026 · per review = my 2-agent run (~80K in / 65K out).</p>
+        <p class="note" style="font-size:16px;margin-top:8px">Sources: <a class="code" href="https://openrouter.ai/business/eu" target="_blank" rel="noopener">EU models &amp; prices ↗</a> · <a class="code" href="https://openrouter.ai/docs/guides/features/in-region-routing" target="_blank" rel="noopener">in-region routing ↗</a> · <a class="code" href="https://openrouter.ai/blog/announcements/us-in-region-routing" target="_blank" rel="noopener">announcement ↗</a> · <a class="code" href="https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html" target="_blank" rel="noopener">DeepSeek privacy policy ↗</a></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -1023,6 +1054,39 @@ Spec: analytics-dashboard
       <div class="abs z2 out2 r" style="left:1130px;top:580px">inline comments + red/green check</div>
       <div class="abs z1" style="left:112px;top:700px;width:1000px">
         <p class="note">The engine knows nothing about the DB, GitHub or the file system. Two external calls: GitHub and the LLM. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/run.ts" target="_blank" rel="noopener">review/run.ts ↗</a></p>
+      </div>
+      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
+    </div></div>
+  </section>
+
+  <!-- 29b · How it gets into CI -->
+  <section class="slide" data-logo="dock" data-tint="green">
+    <div class="rig"><div class="tilt">
+      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
+      <div class="abs z1" style="left:112px;top:96px;width:1380px">
+        <p class="kicker" style="--c:var(--green-h)">4 · Deploy · the reviewer lives in the repository it reviews</p>
+        <h2 class="h sm">Export to CI: DevDigest moves into your repository</h2>
+      </div>
+      <div class="abs z2" style="left:112px;top:214px;width:660px">
+        <div class="box g sm" style="height:290px;box-sizing:border-box"><span class="tag">Committed into the reviewed repository</span>
+<pre class="mini" style="font-size:19px;line-height:1.75;margin-top:14px">your-project/
+├── .github/workflows/devdigest.yml   on: pull_request
+└── .devdigest/
+    ├── agents/*.yaml     which reviewers run
+    ├── skills/*.md       your rules
+    └── runner/index.js   reviewer-core, bundled</pre></div>
+      </div>
+      <div class="abs z2 ci-steps" style="left:800px;top:214px;width:692px;height:290px;display:flex;flex-direction:column;gap:14px">
+        <div class="box b sm"><span class="tag">1 · Export</span> the studio commits these files</div>
+        <div class="box b sm"><span class="tag">2 · One secret</span> <code>OPENROUTER_API_KEY</code></div>
+        <div class="box g sm"><span class="tag">3 · Every PR</span> inline comments + red/green check</div>
+      </div>
+      <div class="abs z2 grid g2 tight ci-paths" style="left:112px;top:536px;width:1380px;gap:18px">
+        <div class="box g sm"><span class="tag">What we do · the simplest path</span><br>The reviewer sits inside the repository it reviews. No server, no deploy, one secret.</div>
+        <div class="box y sm" style="border-style:dashed"><span class="tag">Better at scale · a separate review service</span><br>A GitHub App for all repositories: central config, updates, shared memory, cost tracking.</div>
+      </div>
+      <div class="abs z1" style="left:112px;top:716px;width:1000px">
+        <p class="note">Start inside the repository. Build the service once someone can run it.</p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -1183,7 +1247,7 @@ escapeCSV  ←  exportCsv   controllers/analytics.js
       <div class="abs z1" style="left:112px;top:110px;width:1380px">
         <p class="kicker" style="--c:var(--yellow-h)">4 · Big PRs</p>
         <h2 class="h">What about a 2,000-line PR?</h2>
-        <div class="ans c-y">Review it in chunks.</div>
+        <div class="ans c-y">The reviewer splits it.</div>
       </div>
       <div class="abs z2 flow" style="left:112px;top:420px;width:1380px">
         <div class="box solid y">One PR<small style="color:#0b0c0f">diff &gt; 400 lines</small></div>
@@ -1192,8 +1256,8 @@ escapeCSV  ←  exportCsv   controllers/analytics.js
         <span class="arr y"></span>
         <div class="box y">One review<small>findings merged · worst verdict wins</small></div>
       </div>
-      <div class="abs z1" style="left:112px;top:716px;width:1000px">
-        <p class="note">The PR stays whole: only the diff is cut, inside the reviewer. Each call gets the same context but one file's diff, so cross-file bugs are harder to catch. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/run.ts#L169" target="_blank" rel="noopener">run.ts:169 ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/reduce.ts#L43" target="_blank" rel="noopener">reduce.ts:43 ↗</a></p>
+      <div class="abs z1" style="left:112px;top:700px;width:1000px">
+        <p class="note">You don't split anything: you open one PR. The reviewer cuts its diff by file, reviews each part in parallel with the same context, and merges the findings. Cost: cross-file bugs are harder to catch. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/run.ts#L169" target="_blank" rel="noopener">run.ts:169 ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/review/reduce.ts#L43" target="_blank" rel="noopener">reduce.ts:43 ↗</a></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -1207,7 +1271,7 @@ escapeCSV  ←  exportCsv   controllers/analytics.js
         <p class="kicker" style="--c:var(--red-h)">4 · Trusting the output · what the code actually does</p>
         <h2 class="h sm">Grounding gate: no real line, no finding</h2>
       </div>
-      <div class="abs z2 grid g3 tight" style="left:112px;top:214px;width:1380px;gap:18px">
+      <div class="abs z2 grid g3" style="left:112px;top:220px;width:1380px;gap:18px">
         <div class="box b sm"><span class="tag">1 · The model returns JSON</span>
 <pre class="mini">{ "file": "analyticsController.js",
   "start_line": 708, "end_line": 708,
@@ -1218,18 +1282,12 @@ escapeCSV  ←  exportCsv   controllers/analytics.js
         <div class="box g sm"><span class="tag">3 · Only kept findings count</span>
           <ul><li><b>Score and merge gate</b> come from kept findings</li><li>The model's own verdict is <b>ignored</b></li></ul></div>
       </div>
-      <div class="abs z2 grid g2" style="left:112px;top:436px;width:1380px;gap:18px;font-size:20px">
-        <div class="verdict g" style="font-size:20px">✓ kept · <code>analyticsController.js:708</code> — line is in the diff</div>
-        <div class="verdict r" style="font-size:20px">✗ dropped · <code>auth.js:42–44</code> — “lines do not intersect any diff hunk”</div>
+      <div class="abs z2 grid g2" style="left:112px;top:520px;width:1100px;gap:18px">
+        <div class="verdict g">✓ kept · <code>analyticsController.js:708</code> — line is in the diff</div>
+        <div class="verdict r">✗ dropped · <code>auth.js:42–44</code> — “lines do not intersect any diff hunk”</div>
       </div>
-      <div class="abs z1" style="left:112px;top:522px;width:1380px"><p class="colcap">Grounding is wider than the diff: a claim must point at something real</p></div>
-      <div class="abs z2 grid g3 tight" style="left:112px;top:556px;width:1380px;gap:18px">
-        <div class="box g sm"><b>A line in the PR diff</b><small>verified by code: this gate</small></div>
-        <div class="box b sm"><b>A line in existing code</b><small>if it is in the context: callers, repo map</small></div>
-        <div class="box b sm"><b>A line in the spec</b><small>if the spec is in the context</small></div>
-      </div>
-      <div class="abs z1" style="left:112px;top:708px;width:1000px">
-        <p class="note">DevDigest's gate verifies only the first. Every dropped finding is logged with its reason. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/grounding.ts#L52" target="_blank" rel="noopener">grounding.ts:52 ↗</a></p>
+      <div class="abs z1" style="left:112px;top:640px;width:1000px">
+        <p class="note">Every dropped finding is logged with its reason. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/grounding.ts#L52" target="_blank" rel="noopener">grounding.ts:52 ↗</a></p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -1241,25 +1299,26 @@ escapeCSV  ←  exportCsv   controllers/analytics.js
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:96px;width:1380px">
         <p class="kicker" style="--c:var(--green-h)">4 · How the reviewer gets better</p>
-        <h2 class="h sm">Self-improvement: what happens when you click Learn</h2>
+        <h2 class="h">The self-improvement mechanism</h2>
       </div>
-      <div class="abs z2 grid tight" style="left:112px;top:212px;width:1380px;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))">
-        <div class="box b sm"><span class="tag">1 · Review</span><br>A grounded finding lands on the PR</div>
-        <div class="box b sm"><span class="tag">2 · You react</span><br>Accept, dismiss or <b>Learn</b> on the finding card</div>
-        <div class="box g sm"><span class="tag">3 · Memory row</span><br>Built by code, <b>no LLM</b>. One row per finding, scoped to the repo</div>
-        <div class="box r sm" style="border-style:dashed"><span class="tag">4 · Next review</span><br><code>## Relevant memory</code> exists in the prompt. <b>Nothing fills it yet</b></div>
+      <svg class="abs z1 wires" width="1600" height="900" viewBox="0 0 1600 900" style="left:0;top:0" aria-hidden="true">
+        <circle cx="470" cy="470" r="200" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="2"/>
+        <path class="wire b" d="M560 290 A 200 200 0 0 1 650 380"/>
+        <path class="wire g" d="M650 560 A 200 200 0 0 1 560 650"/>
+        <path class="wire g" d="M380 650 A 200 200 0 0 1 290 560"/>
+        <path class="wire b" d="M290 380 A 200 200 0 0 1 380 290"/>
+      </svg>
+      <div class="abs z2" style="left:370px;top:440px;width:200px;text-align:center"><p class="colcap" style="color:var(--tx)">one loop<br>per PR</p></div>
+      <div class="node2 z2 b" style="left:345px;top:232px;width:250px;text-align:center">1 · Review<small>findings on the PR</small></div>
+      <div class="node2 z2 b" style="left:590px;top:430px;width:280px">2 · You react<small>accept · dismiss · learn</small></div>
+      <div class="node2 z2 g" style="left:300px;top:632px;width:340px;text-align:center">3 · Learn = memory row<small>“in this repo, X is intentional”</small></div>
+      <div class="node2 z2 solid g" style="left:112px;top:430px;width:220px">4 · Next review<small>## Relevant memory</small></div>
+      <div class="abs z2" style="left:900px;top:235px;width:580px;display:flex;flex-direction:column;gap:16px">
+        <div class="box b sm"><span class="tag">Where it lives</span><br>Reaction in the studio <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/reviews/findings.ts#L42" target="_blank" rel="noopener">findings.ts:42 ↗</a> → prompt section <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/prompt.ts#L177" target="_blank" rel="noopener">prompt.ts:177 ↗</a></div>
+        <div class="box y sm"><span class="tag">Evals · the safety net</span><br>Frozen PRs with known defects re-run after every prompt or model change. <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/evals" target="_blank" rel="noopener">evals/ ↗</a></div>
+        <div class="box r sm"><span class="tag">Honest gap</span><br>Learn records a note, but nothing puts memory back into the prompt yet: the loop is still open.</div>
       </div>
-      <div class="abs z2 grid tight" style="left:112px;top:452px;width:1380px;gap:18px;grid-template-columns:1.25fr 1fr">
-        <div class="box g sm"><span class="tag">The row, copied from the finding</span>
-<pre class="mini">kind: "learning"   scope: "repo"
-content: "Bearer token logged
-  (analyticsController.js, line 708):
-  &lt;the finding's rationale&gt;"</pre></div>
-        <div class="box r sm"><span class="tag">Honest gap</span><br>Learn <b>records a note</b>. Neither the studio nor the CI runner passes memory into the prompt, so the loop is still open.</div>
-      </div>
-      <div class="abs z1" style="left:112px;top:706px;width:1010px">
-        <p class="note"><a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/reviews/findings.ts#L42" target="_blank" rel="noopener">findings.ts:42 ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/reviewer-core/src/prompt.ts#L177" target="_blank" rel="noopener">prompt.ts:177 ↗</a> <a class="code" href="https://github.com/ai-agentic-engineering-neo/dev-digest/blob/full-functionality/server/src/modules/reviews/run-executor.ts#L472" target="_blank" rel="noopener">run-executor.ts:472 ↗</a></p>
-      </div>
+      
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
@@ -1269,13 +1328,14 @@ content: "Bearer token logged
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
       <div class="abs z1" style="left:112px;top:100px;width:1380px">
-        <p class="kicker">4 · Demo · recorded, pinned run</p>
-        <h2 class="h sm">PR → Action → inline comments → red check</h2>
+        <p class="kicker">4 · Demo · the studio on a real PR</p>
+        <h2 class="h sm">One PR in DevDigest: brief → blast radius → findings → diff</h2>
       </div>
-      <div class="abs win z2" style="left:112px;top:220px;width:1050px">
-        <div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:12px">devdigest · CI runs dashboard</span></div>
-        <div class="video"><span class="play"></span>demo video goes here</div>
+      <div class="abs win vid z2" style="left:112px;top:205px;width:1000px">
+        <div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">DevDigest · quick-blog PR #44 · existing review, no re-run</span></div>
+        <video class="demo-studio" src="media/demo-studio.mp4" autoplay loop muted playsinline preload="auto" aria-label="DevDigest studio walkthrough on quick-blog PR #44"></video>
       </div>
+      <ol class="abs z2 chaps" style="left:1150px;top:215px;width:340px"><li data-t="0"><b>Overview</b><span>risk brief at a glance</span></li><li data-t="10.4"><b>Blast radius</b><span>who calls the changed code</span></li><li data-t="18.8"><b>Agent runs</b><span>two reviewers, one verdict</span></li><li data-t="26.3"><b>Findings</b><span>severity · file:line · confidence · fix</span></li><li data-t="38.6"><b>Files changed</b><span>smart order → jump to finding</span></li></ol>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
   </section>
@@ -1308,7 +1368,7 @@ content: "Bearer token logged
         <div class="q hot y"><b>Claude Code / Cursor, locally</b>Great quality — when you remember to ask.</div>
         <div class="q hot r"><b>Frontier model in CI</b>Runs on every PR. Frontier prices on every PR add up.</div>
         <div class="q"><b>A light model in a chat window</b>Cheap — but still only when you remember to paste the diff.</div>
-        <div class="q win2 g"><b>Narrow agents + light models in CI</b>Every PR, by itself, for cents. Via OpenRouter, e.g. Gemini 3.8 Flash · $0.75 / $3.75 per 1M tokens.</div>
+        <div class="q win2 g"><b>Narrow agents + light models in CI</b>Every PR, by itself, for cents. Via OpenRouter, e.g. DeepSeek V4 Flash · $0.044 / $0.132 per 1M tokens — $0.03 for two agents on our PR.</div>
       </div>
       <div class="axl z2" style="left:200px;top:672px;width:900px;display:flex;justify-content:space-between"><span>← runs only when asked</span><span>runs on every PR, by itself →</span></div>
       <div class="axl" style="left:120px;top:440px;transform:translate(-50%,-50%) rotate(-90deg)">cheap ←&nbsp;&nbsp;cost per review&nbsp;&nbsp;→ pricey</div>
@@ -1318,7 +1378,7 @@ content: "Bearer token logged
       </div>
       <div class="abs z1" style="left:1150px;top:520px;width:330px">
         <p class="note" style="font-size:20px">Bonus — mix models: same model + another found <b class="c-g">56.7%</b> of errors, same model twice <b>42.7%</b>.</p>
-        <p class="src" style="margin-top:8px;font-size:15px">Gemini price until 31.12 · arXiv 2610.01471</p>
+        <p class="src" style="margin-top:8px;font-size:15px">OpenRouter list price, Nov 2026 · arXiv 2610.01471</p>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -1426,7 +1486,7 @@ content: "Bearer token logged
         <circle cx="120" cy="60" r="13" stroke="#57caff"/><circle cx="300" cy="60" r="13" stroke="#57caff"/><circle cx="760" cy="60" r="13" stroke="#57caff"/><circle cx="1180" cy="60" r="13" stroke="#57caff"/>
         <circle cx="520" cy="180" r="15" stroke="#5cdb6d"/><circle cx="820" cy="180" r="15" stroke="#5cdb6d"/><circle cx="1120" cy="180" r="15" stroke="#5cdb6d" fill="#5cdb6d"/>
         <text x="20" y="30">ai-agentic-engineering-neo/dev-digest · MIT</text>
-        <text x="345" y="135">fork</text>
+        <text x="382" y="122">fork</text>
       </svg>
       <div class="node2 z2 g" style="left:497px;top:470px;width:270px">drop what you don't need<small>keep reviewer-core + CI</small></div>
       <div class="node2 z2 g" style="left:797px;top:470px;width:270px">add your rules &amp; specs<small>skills · agents · ACs</small></div>
@@ -1443,19 +1503,7 @@ content: "Bearer token logged
     </div></div>
   </section>
 
-  <!-- 40 · Joke: the other extreme -->
-  <section class="slide" data-logo="1290 560 380 0.2" data-tint="yellow">
-    <div class="rig"><div class="tilt">
-      <div class="badge z1" style="left:1150px;top:80px"><img src="img/devfest-logo.png" alt="DevFest"><div class="loc">Warsaw</div></div>
-      <div class="abs z2" style="left:140px;top:200px;width:920px">
-        <p class="say">We can no longer afford to review <b>every line by hand</b>.</p>
-        <p class="say" style="margin-top:46px;font-size:50px">But the bugs that hurt are<br>the <span class="hl">cunning ones</span>.</p>
-        <p class="note" style="margin-top:44px;font-size:26px;max-width:46ch">So automated review needs new approaches. Keep trying new ways to catch them.</p>
-      </div>
-    </div></div>
-  </section>
-
-  <!-- 40b · Four parts -->
+<!-- 40b · Four parts -->
   <section class="slide" data-logo="dock" data-tint="mix">
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
@@ -1539,5 +1587,9 @@ content: "Bearer token logged
 <script src="scene.js"></script>
 <script src="nav.js"></script>
 <script src="media.js"></script>
+<script type="application/json" id="dfx-code">{"T1-1":[{"kind":"code","path":"server/src/configs/analytics.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/configs/analytics.js#L2-L3","label":"lines 2–3","note":"","rows":[{"n":1,"h":"<span class=\"tc\">// test fixture — safe to commit (see PR description)<\/span>","x":0},{"n":2,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> EXPORT_SIGNING_SECRET = <span class=\"ts\">&#x27;qb_exp_9f3c2a71b4e8d05c6a1f7e2b9d4c8a3f&#x27;<\/span>","x":1},{"n":3,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> SEGMENT_WRITE_KEY = <span class=\"ts\">&#x27;sk_seg_4e1b7c9d2a6f3e8b5c0d1a2f3e4b5c6d&#x27;<\/span>","x":1}]},{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L564-L569","label":"lines 564–569","note":"","rows":[{"n":558,"h":"  }","x":0},{"n":559,"h":"","x":0},{"n":560,"h":"  <span class=\"tk\">const<\/span> header = <span class=\"ts\">&#x27;Title,Category,Publish Date,Views,Comment Count,Status&#x27;<\/span>","x":0},{"n":561,"h":"  <span class=\"tk\">const<\/span> csv = [header, ...rows.map((r) =&gt; r.join(<span class=\"ts\">&#x27;,&#x27;<\/span>))].join(<span class=\"ts\">&#x27;\\n&#x27;<\/span>)","x":0},{"n":562,"h":"","x":0},{"n":563,"h":"  <span class=\"tk\">const<\/span> signature = crypto","x":0},{"n":564,"h":"    .createHmac(<span class=\"ts\">&#x27;sha256&#x27;<\/span>, EXPORT_SIGNING_SECRET)","x":1},{"n":565,"h":"    .update(csv)","x":1},{"n":566,"h":"    .digest(<span class=\"ts\">&#x27;hex&#x27;<\/span>)","x":1},{"n":567,"h":"","x":1},{"n":568,"h":"  res.setHeader(<span class=\"ts\">&#x27;Content-Type&#x27;<\/span>, <span class=\"ts\">&#x27;text/csv; charset=utf-8&#x27;<\/span>)","x":1},{"n":569,"h":"  res.setHeader(<span class=\"ts\">&#x27;X-Export-Signature&#x27;<\/span>, signature)","x":1},{"n":570,"h":"  res.setHeader(","x":0},{"n":571,"h":"    <span class=\"ts\">&#x27;Content-Disposition&#x27;<\/span>,","x":0},{"n":572,"h":"    <span class=\"ts\">`attachment; filename=&quot;analytics-export-${new Date().toISOString().slice(0, 10)}.csv&quot;`<\/span>","x":0},{"n":573,"h":"  )","x":0},{"n":574,"h":"  res.send(csv)","x":0},{"n":575,"h":"})","x":0}]}],"T1-2":[{"kind":"code","path":"client/src/components/admin/analytics/ExportButton.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/components/admin/analytics/ExportButton.jsx#L5","label":"line 5","note":"","rows":[{"n":1,"h":"<span class=\"tk\">import<\/span> { useState } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;react&#x27;<\/span>","x":0},{"n":2,"h":"<span class=\"tk\">import<\/span> { analyticsApi } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../api/analyticsApi&#x27;<\/span>","x":0},{"n":3,"h":"<span class=\"tk\">import<\/span> { downloadFile } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../utils/downloadFile&#x27;<\/span>","x":0},{"n":4,"h":"<span class=\"tk\">import<\/span> { getErrorMessage } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../utils/helpers&#x27;<\/span>","x":0},{"n":5,"h":"<span class=\"tk\">import<\/span> { EXPORT_SIGNING_SECRET } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../../../server/src/configs/analytics.js&#x27;<\/span>","x":1},{"n":6,"h":"","x":0},{"n":7,"h":"<span class=\"tk\">function<\/span> ExportButton({ filterParams }) {","x":0},{"n":8,"h":"  <span class=\"tk\">const<\/span> [loading, setLoading] = useState(<span class=\"tk\">false<\/span>)","x":0},{"n":9,"h":"  <span class=\"tk\">const<\/span> [error, setError] = useState(<span class=\"tk\">null<\/span>)","x":0},{"n":10,"h":"","x":0},{"n":11,"h":"  <span class=\"tk\">const<\/span> handleExport = <span class=\"tk\">async<\/span> () =&gt; {","x":0}]}],"T1-3":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L708","label":"line 708","note":"","rows":[{"n":702,"h":"  <span class=\"tk\">const<\/span> authHeader = req.headers?.authorization","x":0},{"n":703,"h":"  <span class=\"tk\">if<\/span> (authHeader) {","x":0},{"n":704,"h":"    <span class=\"tk\">const<\/span> token = authHeader.startsWith(<span class=\"ts\">&#x27;Bearer &#x27;<\/span>)","x":0},{"n":705,"h":"      ? authHeader.split(<span class=\"ts\">&#x27; &#x27;<\/span>)[<span class=\"tn\">1<\/span>]","x":0},{"n":706,"h":"      : authHeader","x":0},{"n":707,"h":"    <span class=\"tk\">try<\/span> {","x":0},{"n":708,"h":"      console.log(<span class=\"ts\">&#x27;[analytics] auth header:&#x27;<\/span>, req.headers.authorization)","x":1},{"n":709,"h":"      <span class=\"tk\">const<\/span> decoded = jwt.verify(token, process.env.JWT_SECRET)","x":0},{"n":710,"h":"      <span class=\"tk\">if<\/span> (decoded?.role === <span class=\"ts\">&#x27;admin&#x27;<\/span>) {","x":0},{"n":711,"h":"        isAdminView = <span class=\"tk\">true<\/span>","x":0},{"n":712,"h":"      }","x":0},{"n":713,"h":"    } <span class=\"tk\">catch<\/span> {","x":0},{"n":714,"h":"      <span class=\"tc\">// Invalid/expired token — treat as non-admin view<\/span>","x":0}]}],"T1-4":[{"kind":"code","path":"client/src/components/admin/analytics/tables/RecentCommentsTable.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/components/admin/analytics/tables/RecentCommentsTable.jsx#L48","label":"line 48","note":"","rows":[{"n":42,"h":"          className=<span class=\"ts\">&quot;border-b border-gray-100 pb-3 last:border-b-0 hover:bg-gray-50 -mx-2 px-2 py-1 rounded&quot;<\/span>","x":0},{"n":43,"h":"        &gt;","x":0},{"n":44,"h":"          &lt;p className=<span class=\"ts\">&quot;text-sm font-medium text-gray-800&quot;<\/span>&gt;{item.authorName ?? <span class=\"ts\">&#x27;Anonymous&#x27;<\/span>}&lt;/p&gt;","x":0},{"n":45,"h":"          &lt;p","x":0},{"n":46,"h":"            className=<span class=\"ts\">&quot;text-sm text-gray-600 mt-1&quot;<\/span>","x":0},{"n":47,"h":"            <span class=\"tc\">// keep formatting<\/span>","x":0},{"n":48,"h":"            dangerouslySetInnerHTML={{ __html: truncate(item.contentExcerpt, <span class=\"tn\">50<\/span>) }}","x":1},{"n":49,"h":"          /&gt;","x":0},{"n":50,"h":"          &lt;div className=<span class=\"ts\">&quot;flex flex-wrap items-center gap-2 mt-2&quot;<\/span>&gt;","x":0},{"n":51,"h":"            &lt;a","x":0},{"n":52,"h":"              href={item.blogId ? getBlogDetailPath(item.blogId) : <span class=\"ts\">&#x27;#&#x27;<\/span>}","x":0},{"n":53,"h":"              target=<span class=\"ts\">&quot;_blank&quot;<\/span>","x":0},{"n":54,"h":"              rel=<span class=\"ts\">&quot;noopener noreferrer&quot;<\/span>","x":0}]}],"T1-5":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L655-L656","label":"lines 655–656","note":"","rows":[{"n":649,"h":"","x":0},{"n":650,"h":"  <span class=\"tk\">return<\/span> sendData(res, { data })","x":0},{"n":651,"h":"})","x":0},{"n":652,"h":"","x":0},{"n":653,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> recordView = asyncHandler(<span class=\"tk\">async<\/span> (req, res) =&gt; {","x":0},{"n":654,"h":"  <span class=\"tk\">const<\/span> blogId = req.params?.blogId","x":0},{"n":655,"h":"  <span class=\"tk\">const<\/span> visitorKey = req.body?.visitorKey","x":1},{"n":656,"h":"  <span class=\"tk\">const<\/span> referrerSource = req.body?.referrerSource ?? <span class=\"ts\">&#x27;direct&#x27;<\/span>","x":1},{"n":657,"h":"","x":0},{"n":658,"h":"  <span class=\"tk\">if<\/span> (!visitorKey || <span class=\"tk\">typeof<\/span> visitorKey !== <span class=\"ts\">&#x27;string&#x27;<\/span> || !visitorKey.trim()) {","x":0},{"n":659,"h":"    <span class=\"tk\">return<\/span> sendError(","x":0},{"n":660,"h":"      res,","x":0},{"n":661,"h":"      ERROR_MESSAGES.MISSING_VISITOR_KEY,","x":0},{"n":662,"h":"      HTTP_STATUS.BAD_REQUEST","x":0}]}],"T2-1":[{"kind":"code","path":"server/src/routes/adminRoutes.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/routes/adminRoutes.js#L21-L23","label":"lines 21–23","note":"","rows":[{"n":15,"h":"<span class=\"tk\">const<\/span> adminRouter = express.Router()","x":0},{"n":16,"h":"","x":0},{"n":17,"h":"<span class=\"tc\">// Apply strict rate limiting to login endpoint<\/span>","x":0},{"n":18,"h":"adminRouter.post(<span class=\"ts\">&#x27;/login&#x27;<\/span>, loginLimiter, adminLogin)","x":0},{"n":19,"h":"","x":0},{"n":20,"h":"<span class=\"tc\">// Apply auth middleware to all routes below this point<\/span>","x":0},{"n":21,"h":"adminRouter.use(auth)","x":1},{"n":22,"h":"","x":1},{"n":23,"h":"adminRouter.use(<span class=\"ts\">&#x27;/analytics&#x27;<\/span>, analyticsRouter)","x":1},{"n":24,"h":"adminRouter.get(<span class=\"ts\">&#x27;/dashboard&#x27;<\/span>, getDashboard)","x":0},{"n":25,"h":"adminRouter.get(<span class=\"ts\">&#x27;/blogs&#x27;<\/span>, getAllBlogsAdmin)","x":0},{"n":26,"h":"adminRouter.get(<span class=\"ts\">&#x27;/comments&#x27;<\/span>, getAllComments)","x":0},{"n":27,"h":"adminRouter.post(<span class=\"ts\">&#x27;/approve-comment&#x27;<\/span>, approveCommentById)","x":0},{"n":28,"h":"adminRouter.post(<span class=\"ts\">&#x27;/unapprove-comment&#x27;<\/span>, unapproveCommentById)","x":0},{"n":29,"h":"adminRouter.post(<span class=\"ts\">&#x27;/delete-comment&#x27;<\/span>, deleteCommentById)","x":0}]},{"kind":"code","path":"server/src/middleware/auth.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/middleware/auth.js#L16-L17","label":"lines 16–17","note":"","rows":[{"n":10,"h":"  <span class=\"tc\">// Support both &quot;Bearer &lt;token&gt;&quot; and raw token formats for backwards compatibility<\/span>","x":0},{"n":11,"h":"  <span class=\"tk\">const<\/span> token = authHeader.startsWith(<span class=\"ts\">&#x27;Bearer &#x27;<\/span>)","x":0},{"n":12,"h":"    ? authHeader.split(<span class=\"ts\">&#x27; &#x27;<\/span>)[<span class=\"tn\">1<\/span>]","x":0},{"n":13,"h":"    : authHeader","x":0},{"n":14,"h":"","x":0},{"n":15,"h":"  <span class=\"tk\">try<\/span> {","x":0},{"n":16,"h":"    <span class=\"tk\">const<\/span> decoded = jwt.verify(token, process.env.JWT_SECRET)","x":1},{"n":17,"h":"    req.user = decoded","x":1},{"n":18,"h":"    next()","x":0},{"n":19,"h":"  } <span class=\"tk\">catch<\/span> (error) {","x":0},{"n":20,"h":"    <span class=\"tk\">if<\/span> (error.name === <span class=\"ts\">&#x27;TokenExpiredError&#x27;<\/span>) {","x":0},{"n":21,"h":"      <span class=\"tk\">return<\/span> res.status(<span class=\"tn\">401<\/span>).json({ success: <span class=\"tk\">false<\/span>, message: <span class=\"ts\">&#x27;Token expired&#x27;<\/span> })","x":0},{"n":22,"h":"    }","x":0},{"n":23,"h":"    <span class=\"tk\">return<\/span> res.status(<span class=\"tn\">401<\/span>).json({ success: <span class=\"tk\">false<\/span>, message: <span class=\"ts\">&#x27;Invalid token&#x27;<\/span> })","x":0}]}],"T2-2":[{"kind":"code","path":"server/src/utils/viewTracking.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/utils/viewTracking.js#L78","label":"line 78","note":"","rows":[{"n":72,"h":"/**","x":0},{"n":73,"h":"<span class=\"tc\"> * Fire-and-forget view recording. Does not await. Does not affect response.<\/span>","x":0},{"n":74,"h":"<span class=\"tc\"> * 24h deduplication for non-admin views (same blog + visitorKey within 24h = skip).<\/span>","x":0},{"n":75,"h":"<span class=\"tc\"> * @param {import(&#x27;mongoose&#x27;).Types.ObjectId} blogId<\/span>","x":0},{"n":76,"h":"<span class=\"tc\"> * @param {import(&#x27;express&#x27;).Request} req<\/span>","x":0},{"n":77,"h":"<span class=\"tc\"> */<\/span>","x":0},{"n":78,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">function<\/span> recordView(blogId, req) {","x":1},{"n":79,"h":"  <span class=\"tk\">const<\/span> isAdmin = isAdminRequest(req)","x":0},{"n":80,"h":"  <span class=\"tk\">const<\/span> visitorKey = computeVisitorKey(req)","x":0},{"n":81,"h":"  <span class=\"tk\">const<\/span> referrerSource = classifyReferrer(req.get(<span class=\"ts\">&#x27;referer&#x27;<\/span>) || req.get(<span class=\"ts\">&#x27;referrer&#x27;<\/span>))","x":0},{"n":82,"h":"","x":0},{"n":83,"h":"  <span class=\"tk\">const<\/span> doRecord = <span class=\"tk\">async<\/span> () =&gt; {","x":0},{"n":84,"h":"    <span class=\"tk\">try<\/span> {","x":0}]}],"T2-3":[{"kind":"diff","path":"server/src/middleware/rateLimiter.js","href":"https://github.com/burnjohn/quick-blog/pull/31/files","label":"diff vs main","note":"The whole change: one global number, tripled. No per-endpoint limiter for /view.","rows":[{"n":"","h":"<span class=\"tc\">@@ -40,5 +40,5 @@ export const generateLimiter = rateLimit({<\/span>","x":0,"d":"@"},{"n":40,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> apiLimiter = rateLimit({","x":0,"d":" "},{"n":41,"h":"  windowMs: <span class=\"tn\">60<\/span> * <span class=\"tn\">1000<\/span>, <span class=\"tc\">// 1 minute<\/span>","x":0,"d":" "},{"n":42,"h":"  max: <span class=\"tn\">100<\/span>, <span class=\"tc\">// 100 requests per minute<\/span>","x":0,"d":"-"},{"n":42,"h":"  max: <span class=\"tn\">300<\/span>, <span class=\"tc\">// 300 requests per minute (analytics dashboard uses ~9 parallel requests per interaction)<\/span>","x":1,"d":"+"},{"n":43,"h":"  message: {","x":0,"d":" "},{"n":44,"h":"    success: <span class=\"tk\">false<\/span>,","x":0,"d":" "}]}],"T2-4":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L577-L585","label":"lines 577–585","note":"","rows":[{"n":573,"h":"  )","x":0},{"n":574,"h":"  res.send(csv)","x":0},{"n":575,"h":"})","x":0},{"n":576,"h":"","x":0},{"n":577,"h":"<span class=\"tk\">function<\/span> escapeCSV(val) {","x":1},{"n":578,"h":"  <span class=\"tk\">if<\/span> (val == <span class=\"tk\">null<\/span>) <span class=\"tk\">return<\/span> <span class=\"ts\">&#x27;&#x27;<\/span>","x":1},{"n":579,"h":"  <span class=\"tk\">const<\/span> str = String(val)","x":1},{"n":580,"h":"  <span class=\"tk\">if<\/span> (str.includes(<span class=\"ts\">&#x27;,&#x27;<\/span>) || str.includes(<span class=\"ts\">&#x27;&quot;&#x27;<\/span>) || str.includes(<span class=\"ts\">&#x27;\\n&#x27;<\/span>)) {","x":1},{"n":581,"h":"    <span class=\"tk\">return<\/span> <span class=\"ts\">`&quot;${str.replace(/&quot;/g, &#x27;&quot;&quot;&#x27;)}&quot;`<\/span>","x":1},{"n":582,"h":"  }","x":1},{"n":583,"h":"  <span class=\"tk\">return<\/span> str","x":1},{"n":584,"h":"}","x":1},{"n":585,"h":"","x":1},{"n":586,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> getDrillDown = asyncHandler(<span class=\"tk\">async<\/span> (req, res) =&gt; {","x":0},{"n":587,"h":"  <span class=\"tk\">const<\/span> filter = req.analyticsFilter","x":0},{"n":588,"h":"  <span class=\"tk\">const<\/span> dateStr = req.query?.date","x":0},{"n":589,"h":"  <span class=\"tk\">const<\/span> range = parseChartDateToRange(dateStr)","x":0}]}],"T2-5":[{"kind":"code","path":"server/src/validators/analyticsValidator.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/validators/analyticsValidator.js#L10-L15","label":"lines 10–15","note":"","rows":[{"n":4,"h":"","x":0},{"n":5,"h":"<span class=\"tk\">const<\/span> PERIODS = [<span class=\"ts\">&#x27;7&#x27;<\/span>, <span class=\"ts\">&#x27;30&#x27;<\/span>, <span class=\"ts\">&#x27;90&#x27;<\/span>, <span class=\"ts\">&#x27;365&#x27;<\/span>, <span class=\"ts\">&#x27;all&#x27;<\/span>]","x":0},{"n":6,"h":"<span class=\"tk\">const<\/span> CATEGORIES = [<span class=\"ts\">&#x27;All&#x27;<\/span>, <span class=\"ts\">&#x27;Technology&#x27;<\/span>, <span class=\"ts\">&#x27;Startup&#x27;<\/span>, <span class=\"ts\">&#x27;Lifestyle&#x27;<\/span>, <span class=\"ts\">&#x27;Finance&#x27;<\/span>]","x":0},{"n":7,"h":"","x":0},{"n":8,"h":"<span class=\"tk\">const<\/span> YYYY_MM_DD = /^\\d{<span class=\"tn\">4<\/span>}-\\d{<span class=\"tn\">2<\/span>}-\\d{<span class=\"tn\">2<\/span>}$/","x":0},{"n":9,"h":"","x":0},{"n":10,"h":"<span class=\"tk\">function<\/span> parseDate(str) {","x":1},{"n":11,"h":"  <span class=\"tk\">const<\/span> match = str?.match?.(YYYY_MM_DD)","x":1},{"n":12,"h":"  <span class=\"tk\">if<\/span> (!match) <span class=\"tk\">return<\/span> <span class=\"tk\">null<\/span>","x":1},{"n":13,"h":"  <span class=\"tk\">const<\/span> d = <span class=\"tk\">new<\/span> Date(str + <span class=\"ts\">&#x27;T00:00:00.000Z&#x27;<\/span>)","x":1},{"n":14,"h":"  <span class=\"tk\">return<\/span> isNaN(d.getTime()) ? <span class=\"tk\">null<\/span> : d","x":1},{"n":15,"h":"}","x":1},{"n":16,"h":"","x":0},{"n":17,"h":"/**","x":0},{"n":18,"h":"<span class=\"tc\"> * Middleware to validate analytics query params and attach req.analyticsFilter.<\/span>","x":0},{"n":19,"h":"<span class=\"tc\"> * Query: period | (from, to), category<\/span>","x":0},{"n":20,"h":"<span class=\"tc\"> */<\/span>","x":0},{"n":21,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">function<\/span> validateAnalyticsQuery(req, res, next) {","x":0}]}],"T2-6":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L343","label":"line 343","note":"","rows":[{"n":337,"h":"    {","x":0},{"n":338,"h":"      $group: {","x":0},{"n":339,"h":"        _id: <span class=\"ts\">&#x27;$blogDoc.category&#x27;<\/span>,","x":0},{"n":340,"h":"        views: { $sum: <span class=\"tn\">1<\/span> }","x":0},{"n":341,"h":"      }","x":0},{"n":342,"h":"    },","x":0},{"n":343,"h":"    { $sort: { views: <span class=\"tn\">1<\/span> } }","x":1},{"n":344,"h":"  ])","x":0},{"n":345,"h":"","x":0},{"n":346,"h":"  <span class=\"tk\">const<\/span> data = result.map((r) =&gt; ({","x":0},{"n":347,"h":"    category: r._id,","x":0},{"n":348,"h":"    views: r.views","x":0},{"n":349,"h":"  }))","x":0}]}],"T2-7":[{"kind":"code","path":"client/src/hooks/api/queries/useAnalytics.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/hooks/api/queries/useAnalytics.js#L13","label":"line 13","note":"","rows":[{"n":7,"h":"  <span class=\"tk\">const<\/span> queryParams = { period, <span class=\"tk\">from<\/span>, to, category }","x":0},{"n":8,"h":"","x":0},{"n":9,"h":"  <span class=\"tk\">const<\/span> { data, loading, error, refetch } = useApiQuery(","x":0},{"n":10,"h":"    () =&gt; analyticsApi.getKpis(queryParams),","x":0},{"n":11,"h":"    {","x":0},{"n":12,"h":"      errorMessage: MESSAGES.ERROR_GENERIC,","x":0},{"n":13,"h":"      dependencies: [period, <span class=\"tk\">from<\/span>, to]","x":1},{"n":14,"h":"    }","x":0},{"n":15,"h":"  )","x":0},{"n":16,"h":"","x":0},{"n":17,"h":"  <span class=\"tk\">return<\/span> {","x":0},{"n":18,"h":"    data: data?.kpis ?? <span class=\"tk\">null<\/span>,","x":0},{"n":19,"h":"    loading,","x":0}]}],"T2-8":[{"kind":"code","path":"client/src/components/admin/analytics/KpiSection.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/components/admin/analytics/KpiSection.jsx#L17-L19","label":"lines 17–19","note":"","rows":[{"n":11,"h":"  mostActiveCategory: <span class=\"ts\">&#x27;Most Active Category&#x27;<\/span>","x":0},{"n":12,"h":"}","x":0},{"n":13,"h":"","x":0},{"n":14,"h":"<span class=\"tk\">function<\/span> KpiSection({ params = {} }) {","x":0},{"n":15,"h":"  <span class=\"tk\">const<\/span> { data: kpis, loading, error, refetch } = useAnalyticsKpis(params)","x":0},{"n":16,"h":"","x":0},{"n":17,"h":"  useEffect(() =&gt; {","x":1},{"n":18,"h":"    setInterval(refetch, <span class=\"tn\">30000<\/span>)","x":1},{"n":19,"h":"  }, [refetch])","x":1},{"n":20,"h":"","x":0},{"n":21,"h":"  <span class=\"tk\">if<\/span> (error) {","x":0},{"n":22,"h":"    <span class=\"tk\">return<\/span> (","x":0},{"n":23,"h":"      &lt;div className=<span class=\"ts\">&quot;p-4 bg-white rounded-lg shadow-sm border border-gray-100&quot;<\/span>&gt;","x":0},{"n":24,"h":"        &lt;p className=<span class=\"ts\">&quot;text-red-600 mb-4&quot;<\/span>&gt;{error}&lt;/p&gt;","x":0},{"n":25,"h":"        &lt;button","x":0}]}],"T2-9":[{"kind":"code","path":"server/migrations/20260211000001-add-blogview-indexes.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/migrations/20260211000001-add-blogview-indexes.js#L35-L42","label":"lines 35–42","note":"","rows":[{"n":31,"h":"    <span class=\"tk\">throw<\/span> error","x":0},{"n":32,"h":"  }","x":0},{"n":33,"h":"}","x":0},{"n":34,"h":"","x":0},{"n":35,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">async<\/span> <span class=\"tk\">function<\/span> down(db) {","x":1},{"n":36,"h":"  <span class=\"tk\">try<\/span> {","x":1},{"n":37,"h":"    dbLogger.logMigration(<span class=\"ts\">&#x27;20260211000001-add-blogview-indexes&#x27;<\/span>, <span class=\"ts\">&#x27;ROLLING_BACK&#x27;<\/span>, <span class=\"ts\">&#x27;Removing indexes from blogviews collection&#x27;<\/span>)","x":1},{"n":38,"h":"","x":1},{"n":39,"h":"    <span class=\"tk\">await<\/span> db.collection(<span class=\"ts\">&#x27;blogviews&#x27;<\/span>).drop()","x":1},{"n":40,"h":"","x":1},{"n":41,"h":"    dbLogger.logMigration(<span class=\"ts\">&#x27;20260211000001-add-blogview-indexes&#x27;<\/span>, <span class=\"ts\">&#x27;ROLLED_BACK&#x27;<\/span>, <span class=\"ts\">&#x27;Indexes removed successfully&#x27;<\/span>)","x":1},{"n":42,"h":"    console.info(<span class=\"ts\">&#x27;✅ Migration down: Indexes removed from blogviews collection&#x27;<\/span>)","x":1},{"n":43,"h":"  } <span class=\"tk\">catch<\/span> (error) {","x":0},{"n":44,"h":"    dbLogger.logError(<span class=\"ts\">&#x27;20260211000001-add-blogview-indexes DOWN&#x27;<\/span>, error)","x":0},{"n":45,"h":"    <span class=\"tk\">throw<\/span> error","x":0},{"n":46,"h":"  }","x":0}]}],"T2-10":[{"kind":"code","path":"client/vite.config.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/vite.config.js#L12-L14","label":"lines 12–14","note":"","rows":[{"n":6,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">default<\/span> defineConfig({","x":0},{"n":7,"h":"  plugins: [","x":0},{"n":8,"h":"    react(), ","x":0},{"n":9,"h":"    tailwindcss()","x":0},{"n":10,"h":"  ],","x":0},{"n":11,"h":"  <span class=\"tc\">// expose env to analytics config<\/span>","x":0},{"n":12,"h":"  define: {","x":1},{"n":13,"h":"    <span class=\"ts\">&#x27;process.env&#x27;<\/span>: JSON.stringify(process.env)","x":1},{"n":14,"h":"  },","x":1},{"n":15,"h":"  test: {","x":0},{"n":16,"h":"    globals: <span class=\"tk\">true<\/span>,","x":0},{"n":17,"h":"    environment: <span class=\"ts\">&#x27;jsdom&#x27;<\/span>,","x":0},{"n":18,"h":"    setupFiles: <span class=\"ts\">&#x27;./src/test/setup.js&#x27;<\/span>,","x":0},{"n":19,"h":"    css: <span class=\"tk\">false<\/span>,","x":0},{"n":20,"h":"  },","x":0}]}],"T2-11":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L693-L699","label":"lines 693–699","note":"","rows":[{"n":687,"h":"  <span class=\"tk\">const<\/span> existing = <span class=\"tk\">await<\/span> BlogView.findOne({","x":0},{"n":688,"h":"    blog: blogId,","x":0},{"n":689,"h":"    visitorKey: visitorKey.trim(),","x":0},{"n":690,"h":"    viewedAt: { $gte: twentyFourHoursAgo }","x":0},{"n":691,"h":"  })","x":0},{"n":692,"h":"","x":0},{"n":693,"h":"  <span class=\"tk\">if<\/span> (existing) {","x":1},{"n":694,"h":"    <span class=\"tk\">return<\/span> sendError(","x":1},{"n":695,"h":"      res,","x":1},{"n":696,"h":"      ERROR_MESSAGES.VIEW_ALREADY_RECORDED,","x":1},{"n":697,"h":"      HTTP_STATUS.BAD_REQUEST","x":1},{"n":698,"h":"    )","x":1},{"n":699,"h":"  }","x":1},{"n":700,"h":"","x":0},{"n":701,"h":"  <span class=\"tk\">let<\/span> isAdminView = <span class=\"tk\">false<\/span>","x":0},{"n":702,"h":"  <span class=\"tk\">const<\/span> authHeader = req.headers?.authorization","x":0},{"n":703,"h":"  <span class=\"tk\">if<\/span> (authHeader) {","x":0},{"n":704,"h":"    <span class=\"tk\">const<\/span> token = authHeader.startsWith(<span class=\"ts\">&#x27;Bearer &#x27;<\/span>)","x":0},{"n":705,"h":"      ? authHeader.split(<span class=\"ts\">&#x27; &#x27;<\/span>)[<span class=\"tn\">1<\/span>]","x":0}]}],"T2-12":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L701-L712","label":"lines 701–712","note":"","rows":[{"n":697,"h":"      HTTP_STATUS.BAD_REQUEST","x":0},{"n":698,"h":"    )","x":0},{"n":699,"h":"  }","x":0},{"n":700,"h":"","x":0},{"n":701,"h":"  <span class=\"tk\">let<\/span> isAdminView = <span class=\"tk\">false<\/span>","x":1},{"n":702,"h":"  <span class=\"tk\">const<\/span> authHeader = req.headers?.authorization","x":1},{"n":703,"h":"  <span class=\"tk\">if<\/span> (authHeader) {","x":1},{"n":704,"h":"    <span class=\"tk\">const<\/span> token = authHeader.startsWith(<span class=\"ts\">&#x27;Bearer &#x27;<\/span>)","x":1},{"n":705,"h":"      ? authHeader.split(<span class=\"ts\">&#x27; &#x27;<\/span>)[<span class=\"tn\">1<\/span>]","x":1},{"n":706,"h":"      : authHeader","x":1},{"n":707,"h":"    <span class=\"tk\">try<\/span> {","x":1},{"n":708,"h":"      console.log(<span class=\"ts\">&#x27;[analytics] auth header:&#x27;<\/span>, req.headers.authorization)","x":1},{"n":709,"h":"      <span class=\"tk\">const<\/span> decoded = jwt.verify(token, process.env.JWT_SECRET)","x":1},{"n":710,"h":"      <span class=\"tk\">if<\/span> (decoded?.role === <span class=\"ts\">&#x27;admin&#x27;<\/span>) {","x":1},{"n":711,"h":"        isAdminView = <span class=\"tk\">true<\/span>","x":1},{"n":712,"h":"      }","x":1},{"n":713,"h":"    } <span class=\"tk\">catch<\/span> {","x":0},{"n":714,"h":"      <span class=\"tc\">// Invalid/expired token — treat as non-admin view<\/span>","x":0},{"n":715,"h":"    }","x":0},{"n":716,"h":"  }","x":0}]}],"T3-1":[{"kind":"code","path":"client/src/constants/apiEndpoints.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/constants/apiEndpoints.js#L33","label":"line 33","note":"Declared…","rows":[{"n":27,"h":"  ANALYTICS_VIEWS_BY_CATEGORY: <span class=\"ts\">&#x27;/api/admin/analytics/views-by-category&#x27;<\/span>,","x":0},{"n":28,"h":"  ANALYTICS_TOP_VIEWED: <span class=\"ts\">&#x27;/api/admin/analytics/top-viewed&#x27;<\/span>,","x":0},{"n":29,"h":"  ANALYTICS_TOP_COMMENTED: <span class=\"ts\">&#x27;/api/admin/analytics/top-commented&#x27;<\/span>,","x":0},{"n":30,"h":"  ANALYTICS_LAST_COMMENTS: <span class=\"ts\">&#x27;/api/admin/analytics/last-comments&#x27;<\/span>,","x":0},{"n":31,"h":"  ANALYTICS_EXPORT_CSV: <span class=\"ts\">&#x27;/api/admin/analytics/export-csv&#x27;<\/span>,","x":0},{"n":32,"h":"  ANALYTICS_DRILL_DOWN: <span class=\"ts\">&#x27;/api/admin/analytics/drill-down&#x27;<\/span>,","x":0},{"n":33,"h":"  RECORD_VIEW: (blogId) =&gt; <span class=\"ts\">`/api/blog/${blogId}/view`<\/span>","x":1},{"n":34,"h":"}","x":0},{"n":35,"h":"","x":0}]},{"kind":"code","path":"client/src/pages/public/BlogDetail/BlogDetail.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/pages/public/BlogDetail/BlogDetail.jsx","label":"lines 1–26","note":"…and never called: the post page loads the blog and comments, nothing posts a view.","rows":[{"n":1,"h":"<span class=\"tk\">import<\/span> React <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;react&#x27;<\/span>","x":0},{"n":2,"h":"<span class=\"tk\">import<\/span> { useParams } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;react-router-dom&#x27;<\/span>","x":0},{"n":3,"h":"<span class=\"tk\">import<\/span> { assets } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../assets/assets&#x27;<\/span>","x":0},{"n":4,"h":"<span class=\"tk\">import<\/span> { Navbar, Footer } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/layout&#x27;<\/span>","x":0},{"n":5,"h":"<span class=\"tk\">import<\/span> { BlogHeader, BlogContent, SocialShare } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/blog&#x27;<\/span>","x":0},{"n":6,"h":"<span class=\"tk\">import<\/span> { CommentList, CommentForm } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/comment&#x27;<\/span>","x":0},{"n":7,"h":"<span class=\"tk\">import<\/span> { Loader } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/ui&#x27;<\/span>","x":0},{"n":8,"h":"<span class=\"tk\">import<\/span> { useBlog, useComments } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../hooks&#x27;<\/span>","x":0},{"n":9,"h":"","x":0},{"n":10,"h":"<span class=\"tk\">function<\/span> BlogDetail() {","x":0},{"n":11,"h":"  <span class=\"tk\">const<\/span> { id } = useParams()","x":1},{"n":12,"h":"  <span class=\"tk\">const<\/span> { blog, loading: blogLoading } = useBlog(id)","x":1},{"n":13,"h":"  <span class=\"tk\">const<\/span> { comments, addComment } = useComments(id)","x":1},{"n":14,"h":"","x":0},{"n":15,"h":"  <span class=\"tk\">const<\/span> handleAddComment = <span class=\"tk\">async<\/span> (commentData) =&gt; {","x":0},{"n":16,"h":"    <span class=\"tk\">return<\/span> <span class=\"tk\">await<\/span> addComment({","x":0},{"n":17,"h":"      blog: id,","x":0},{"n":18,"h":"      name: commentData.name,","x":0},{"n":19,"h":"      content: commentData.content","x":0},{"n":20,"h":"    })","x":0},{"n":21,"h":"  }","x":0},{"n":22,"h":"","x":0},{"n":23,"h":"  <span class=\"tk\">if<\/span> (blogLoading || !blog) {","x":0},{"n":24,"h":"    <span class=\"tk\">return<\/span> &lt;Loader /&gt;","x":0},{"n":25,"h":"  }","x":0},{"n":26,"h":"","x":0}]}],"T3-2":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L539-L546","label":"lines 539–546","note":"","rows":[{"n":535,"h":"  <span class=\"tk\">const<\/span> blogFilter = buildBlogFilter(filter)","x":0},{"n":536,"h":"  <span class=\"tk\">const<\/span> blogs = <span class=\"tk\">await<\/span> Blog.find(blogFilter).lean()","x":0},{"n":537,"h":"","x":0},{"n":538,"h":"  <span class=\"tk\">const<\/span> rows = []","x":0},{"n":539,"h":"  <span class=\"tk\">for<\/span> (<span class=\"tk\">const<\/span> b <span class=\"tk\">of<\/span> blogs) {","x":1},{"n":540,"h":"    <span class=\"tk\">const<\/span> views = <span class=\"tk\">await<\/span> BlogView.countDocuments({","x":1},{"n":541,"h":"      blog: b._id,","x":1},{"n":542,"h":"      isAdminView: <span class=\"tk\">false<\/span>,","x":1},{"n":543,"h":"      viewedAt: { $gte: filter.<span class=\"tk\">from<\/span>, $lte: filter.to }","x":1},{"n":544,"h":"    })","x":1},{"n":545,"h":"    <span class=\"tk\">const<\/span> commentCount = <span class=\"tk\">await<\/span> Comment.countDocuments({ blog: b._id })","x":1},{"n":546,"h":"    <span class=\"tk\">const<\/span> publishDate = b.createdAt","x":1},{"n":547,"h":"      ? <span class=\"tk\">new<\/span> Date(b.createdAt).toISOString().slice(<span class=\"tn\">0<\/span>, <span class=\"tn\">10<\/span>)","x":0},{"n":548,"h":"      : <span class=\"ts\">&#x27;&#x27;<\/span>","x":0},{"n":549,"h":"    <span class=\"tk\">const<\/span> status = b.isPublished ? <span class=\"ts\">&#x27;Published&#x27;<\/span> : <span class=\"ts\">&#x27;Draft&#x27;<\/span>","x":0},{"n":550,"h":"    rows.push([","x":0}]}],"T3-3":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L359-L361","label":"lines 359–361","note":"","rows":[{"n":353,"h":"","x":0},{"n":354,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> getTopViewed = asyncHandler(<span class=\"tk\">async<\/span> (req, res) =&gt; {","x":0},{"n":355,"h":"  <span class=\"tk\">const<\/span> filter = req.analyticsFilter","x":0},{"n":356,"h":"  <span class=\"tk\">const<\/span> { <span class=\"tk\">from<\/span>, to } = filter","x":0},{"n":357,"h":"","x":0},{"n":358,"h":"  <span class=\"tk\">const<\/span> blogFilter = buildBlogFilter(filter)","x":0},{"n":359,"h":"  <span class=\"tk\">if<\/span> (req.query.search) {","x":1},{"n":360,"h":"    blogFilter.title = { $regex: req.query.search, $options: <span class=\"ts\">&#x27;i&#x27;<\/span> }","x":1},{"n":361,"h":"  }","x":1},{"n":362,"h":"  <span class=\"tk\">const<\/span> blogs = <span class=\"tk\">await<\/span> Blog.find(blogFilter).select(<span class=\"ts\">&#x27;_id&#x27;<\/span>).lean()","x":0},{"n":363,"h":"  <span class=\"tk\">const<\/span> blogIds = blogs.map((b) =&gt; b._id)","x":0},{"n":364,"h":"","x":0},{"n":365,"h":"  <span class=\"tk\">if<\/span> (blogIds.length === <span class=\"tn\">0<\/span>) {","x":0},{"n":366,"h":"    <span class=\"tk\">return<\/span> sendData(res, { data: [] })","x":0},{"n":367,"h":"  }","x":0}]}],"T3-4":[{"kind":"code","path":"client/src/utils/formatters.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/utils/formatters.js#L31-L37","label":"lines 31–37","note":"","rows":[{"n":25,"h":"","x":0},{"n":26,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> formatNumber = (num) =&gt; {","x":0},{"n":27,"h":"  <span class=\"tk\">if<\/span> (num == <span class=\"tk\">null<\/span>) <span class=\"tk\">return<\/span> <span class=\"ts\">&#x27;0&#x27;<\/span>","x":0},{"n":28,"h":"  <span class=\"tk\">return<\/span> Number(num).toLocaleString(<span class=\"ts\">&#x27;en-US&#x27;<\/span>)","x":0},{"n":29,"h":"}","x":0},{"n":30,"h":"","x":0},{"n":31,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> formatShortDate = (date) =&gt; {","x":1},{"n":32,"h":"  <span class=\"tk\">if<\/span> (!date) <span class=\"tk\">return<\/span> <span class=\"ts\">&#x27;—&#x27;<\/span>","x":1},{"n":33,"h":"  <span class=\"tk\">return<\/span> <span class=\"tk\">new<\/span> Date(date).toLocaleDateString(<span class=\"tk\">undefined<\/span>, {","x":1},{"n":34,"h":"    month: <span class=\"ts\">&#x27;short&#x27;<\/span>,","x":1},{"n":35,"h":"    day: <span class=\"ts\">&#x27;numeric&#x27;<\/span>,","x":1},{"n":36,"h":"    year: <span class=\"ts\">&#x27;numeric&#x27;<\/span>","x":1},{"n":37,"h":"  })","x":1},{"n":38,"h":"}","x":0},{"n":39,"h":"","x":0},{"n":40,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> truncate = (text, length = <span class=\"tn\">80<\/span>) =&gt; {","x":0},{"n":41,"h":"  <span class=\"tk\">if<\/span> (!text) <span class=\"tk\">return<\/span> <span class=\"ts\">&#x27;&#x27;<\/span>","x":0},{"n":42,"h":"  <span class=\"tk\">return<\/span> text.length &gt; length ? text.slice(<span class=\"tn\">0<\/span>, length) + <span class=\"ts\">&#x27;…&#x27;<\/span> : text","x":0},{"n":43,"h":"}","x":0}]}],"T3-5":[{"kind":"code","path":"client/src/components/admin/analytics/KpiCard.test.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/components/admin/analytics/KpiCard.test.jsx#L9-L14","label":"lines 9–14","note":"","rows":[{"n":3,"h":"","x":0},{"n":4,"h":"describe(<span class=\"ts\">&#x27;KpiCard&#x27;<\/span>, () =&gt; {","x":0},{"n":5,"h":"  it(<span class=\"ts\">&#x27;renders&#x27;<\/span>, () =&gt; {","x":0},{"n":6,"h":"    <span class=\"tk\">const<\/span> { container } = render(","x":0},{"n":7,"h":"      &lt;KpiCard label=<span class=\"ts\">&quot;Total Views&quot;<\/span> value={<span class=\"tn\">1234<\/span>} trend={{ direction: <span class=\"ts\">&#x27;up&#x27;<\/span>, percentChange: <span class=\"tn\">12<\/span> }} /&gt;","x":0},{"n":8,"h":"    )","x":0},{"n":9,"h":"    expect(container).toBeTruthy()","x":1},{"n":10,"h":"  })","x":1},{"n":11,"h":"","x":1},{"n":12,"h":"  it.skip(<span class=\"ts\">&#x27;shows up arrow when trend is positive&#x27;<\/span>, () =&gt; {})","x":1},{"n":13,"h":"","x":1},{"n":14,"h":"  it.skip(<span class=\"ts\">&#x27;hides trend for all-time period&#x27;<\/span>, () =&gt; {})","x":1},{"n":15,"h":"})","x":0}]}],"T3-6":[{"kind":"code","path":"client/src/pages/admin/Analytics.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/pages/admin/Analytics.jsx#L60-L72","label":"lines 60–72","note":"","rows":[{"n":56,"h":"      <span class=\"tk\">return<\/span> next","x":0},{"n":57,"h":"    })","x":0},{"n":58,"h":"  }, [setSearchParams])","x":0},{"n":59,"h":"","x":0},{"n":60,"h":"  <span class=\"tk\">const<\/span> handleDrillDown = useCallback(<span class=\"tk\">async<\/span> (date) =&gt; {","x":1},{"n":61,"h":"    setDrillDown({ isOpen: <span class=\"tk\">true<\/span>, date, posts: [], loading: <span class=\"tk\">true<\/span> })","x":1},{"n":62,"h":"    <span class=\"tk\">try<\/span> {","x":1},{"n":63,"h":"      <span class=\"tk\">const<\/span> res = <span class=\"tk\">await<\/span> analyticsApi.getDrillDown(date, filterParams)","x":1},{"n":64,"h":"      setDrillDown((prev) =&gt; ({ ...prev, posts: res.data?.data ?? [], loading: <span class=\"tk\">false<\/span> }))","x":1},{"n":65,"h":"    } <span class=\"tk\">catch<\/span> {","x":1},{"n":66,"h":"      setDrillDown((prev) =&gt; ({ ...prev, posts: [], loading: <span class=\"tk\">false<\/span> }))","x":1},{"n":67,"h":"    }","x":1},{"n":68,"h":"  }, [filterParams])","x":1},{"n":69,"h":"","x":1},{"n":70,"h":"  <span class=\"tk\">const<\/span> handleCloseDrillDown = useCallback(() =&gt; {","x":1},{"n":71,"h":"    setDrillDown({ isOpen: <span class=\"tk\">false<\/span>, date: <span class=\"tk\">null<\/span>, posts: [], loading: <span class=\"tk\">false<\/span> })","x":1},{"n":72,"h":"  }, [])","x":1},{"n":73,"h":"","x":0},{"n":74,"h":"  <span class=\"tk\">return<\/span> (","x":0},{"n":75,"h":"    &lt;div className=<span class=\"ts\">&quot;p-6 max-w-7xl mx-auto&quot;<\/span>&gt;","x":0},{"n":76,"h":"      &lt;h1 className=<span class=\"ts\">&quot;text-2xl font-bold text-gray-800 mb-6&quot;<\/span>&gt;Analytics&lt;/h1&gt;","x":0}]}],"T3-7":[{"kind":"code","path":"server/src/helpers/analyticsAggregations.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/helpers/analyticsAggregations.js#L28-L40","label":"lines 28–40","note":"","rows":[{"n":24,"h":"","x":0},{"n":25,"h":"/**","x":0},{"n":26,"h":"<span class=\"tc\"> * Returns the previous period (same length) for trend comparison.<\/span>","x":0},{"n":27,"h":"<span class=\"tc\"> */<\/span>","x":0},{"n":28,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">function<\/span> getPreviousPeriod(<span class=\"tk\">from<\/span>, to) {","x":1},{"n":29,"h":"  <span class=\"tk\">const<\/span> ms = to.getTime() - <span class=\"tk\">from<\/span>.getTime()","x":1},{"n":30,"h":"  <span class=\"tk\">return<\/span> {","x":1},{"n":31,"h":"    <span class=\"tk\">from<\/span>: <span class=\"tk\">new<\/span> Date(<span class=\"tk\">from<\/span>.getTime() - ms),","x":1},{"n":32,"h":"    to: <span class=\"tk\">new<\/span> Date(<span class=\"tk\">from<\/span>.getTime())","x":1},{"n":33,"h":"  }","x":1},{"n":34,"h":"}","x":1},{"n":35,"h":"","x":1},{"n":36,"h":"/**","x":1},{"n":37,"h":"<span class=\"tc\"> * Calculates trend between current and previous values.<\/span>","x":1},{"n":38,"h":"<span class=\"tc\"> */<\/span>","x":1},{"n":39,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">function<\/span> calculateTrend(current, previous) {","x":1},{"n":40,"h":"  <span class=\"tk\">if<\/span> (previous === <span class=\"tn\">0<\/span>) {","x":1},{"n":41,"h":"    <span class=\"tk\">return<\/span> { direction: current &gt; <span class=\"tn\">0<\/span> ? <span class=\"ts\">&#x27;up&#x27;<\/span> : <span class=\"ts\">&#x27;unchanged&#x27;<\/span>, percentChange: current &gt; <span class=\"tn\">0<\/span> ? <span class=\"tn\">100<\/span> : <span class=\"tn\">0<\/span> }","x":0},{"n":42,"h":"  }","x":0},{"n":43,"h":"  <span class=\"tk\">const<\/span> percentChange = ((current - previous) / previous) * <span class=\"tn\">100<\/span>","x":0},{"n":44,"h":"  <span class=\"tk\">let<\/span> direction = <span class=\"ts\">&#x27;unchanged&#x27;<\/span>","x":0}]}],"T3-9":[{"kind":"list","path":"PR #31 · test files added","href":"https://github.com/burnjohn/quick-blog/pull/31/files","label":"","note":"13 test files in the PR; 12 are for components this feature does not touch.","rows":[{"n":1,"h":"client/src/components/blog/BlogContent.test.jsx","x":0,"d":"+"},{"n":2,"h":"client/src/components/blog/BlogHeader.test.jsx","x":0,"d":"+"},{"n":3,"h":"client/src/components/blog/SocialShare.test.jsx","x":0,"d":"+"},{"n":4,"h":"client/src/components/comment/CommentForm.test.jsx","x":0,"d":"+"},{"n":5,"h":"client/src/components/comment/CommentItem.test.jsx","x":0,"d":"+"},{"n":6,"h":"client/src/components/comment/CommentList.test.jsx","x":0,"d":"+"},{"n":7,"h":"client/src/components/layout/Footer.test.jsx","x":0,"d":"+"},{"n":8,"h":"client/src/components/layout/Navbar.test.jsx","x":0,"d":"+"},{"n":9,"h":"client/src/hooks/api/mutations/useBlogGenerator.test.js","x":0,"d":"+"},{"n":10,"h":"client/src/hooks/api/mutations/useCreateBlog.test.js","x":0,"d":"+"},{"n":11,"h":"client/src/hooks/core/useApiMutation.test.js","x":0,"d":"+"},{"n":12,"h":"client/src/pages/admin/AddBlog.test.jsx","x":0,"d":"+"},{"n":13,"h":"client/src/components/admin/analytics/KpiCard.test.jsx   ← the only analytics test","x":1,"d":"+"}]},{"kind":"code","path":"client/src/components/admin/analytics/KpiCard.test.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/components/admin/analytics/KpiCard.test.jsx#L9-L14","label":"lines 9–14","note":"…and the one analytics test asserts nothing (T3-5).","rows":[{"n":1,"h":"<span class=\"tk\">import<\/span> { render } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;@testing-library/react&#x27;<\/span>","x":0},{"n":2,"h":"<span class=\"tk\">import<\/span> KpiCard <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;./KpiCard&#x27;<\/span>","x":0},{"n":3,"h":"","x":0},{"n":4,"h":"describe(<span class=\"ts\">&#x27;KpiCard&#x27;<\/span>, () =&gt; {","x":0},{"n":5,"h":"  it(<span class=\"ts\">&#x27;renders&#x27;<\/span>, () =&gt; {","x":0},{"n":6,"h":"    <span class=\"tk\">const<\/span> { container } = render(","x":0},{"n":7,"h":"      &lt;KpiCard label=<span class=\"ts\">&quot;Total Views&quot;<\/span> value={<span class=\"tn\">1234<\/span>} trend={{ direction: <span class=\"ts\">&#x27;up&#x27;<\/span>, percentChange: <span class=\"tn\">12<\/span> }} /&gt;","x":0},{"n":8,"h":"    )","x":0},{"n":9,"h":"    expect(container).toBeTruthy()","x":1},{"n":10,"h":"  })","x":1},{"n":11,"h":"","x":1},{"n":12,"h":"  it.skip(<span class=\"ts\">&#x27;shows up arrow when trend is positive&#x27;<\/span>, () =&gt; {})","x":1},{"n":13,"h":"","x":1},{"n":14,"h":"  it.skip(<span class=\"ts\">&#x27;hides trend for all-time period&#x27;<\/span>, () =&gt; {})","x":1},{"n":15,"h":"})","x":0}]}],"T3-10":[{"kind":"diff","path":"server/src/controllers/adminController.js","href":"https://github.com/burnjohn/quick-blog/pull/31/files","label":"diff vs main","note":"Dashboard controller rewritten — not part of analytics.","rows":[{"n":"","h":"<span class=\"tc\">@@ -86,8 +86,17 @@ export const getDashboard = asyncHandler(async (req, res) =&gt; {<\/span>","x":0,"d":"@"},{"n":86,"h":"  )","x":0,"d":" "},{"n":87,"h":"","x":0,"d":" "},{"n":88,"h":"  <span class=\"tk\">const<\/span> recentComments = <span class=\"tk\">await<\/span> Comment.find({}).sort({ createdAt: -<span class=\"tn\">1<\/span> }).limit(<span class=\"tn\">6<\/span>)","x":0,"d":"-"},{"n":89,"h":"  <span class=\"tk\">const<\/span> blogs = <span class=\"tk\">await<\/span> Blog.countDocuments()","x":0,"d":"-"},{"n":90,"h":"  <span class=\"tk\">const<\/span> comments = <span class=\"tk\">await<\/span> Comment.countDocuments()","x":0,"d":"-"},{"n":91,"h":"  <span class=\"tk\">const<\/span> drafts = <span class=\"tk\">await<\/span> Blog.countDocuments({ isPublished: <span class=\"tk\">false<\/span> })","x":0,"d":"-"},{"n":88,"h":"  <span class=\"tc\">// Calculate start of current month for monthly stats<\/span>","x":1,"d":"+"},{"n":89,"h":"  <span class=\"tk\">const<\/span> now = <span class=\"tk\">new<\/span> Date()","x":1,"d":"+"},{"n":90,"h":"  <span class=\"tk\">const<\/span> startOfMonth = <span class=\"tk\">new<\/span> Date(now.getFullYear(), now.getMonth(), <span class=\"tn\">1<\/span>)","x":1,"d":"+"},{"n":91,"h":"","x":1,"d":"+"},{"n":92,"h":"  <span class=\"tk\">const<\/span> [recentComments, blogs, comments, drafts, blogsThisMonth, publishedThisMonth] =","x":1,"d":"+"},{"n":93,"h":"    <span class=\"tk\">await<\/span> Promise.all([","x":1,"d":"+"},{"n":94,"h":"      Comment.find({}).sort({ createdAt: -<span class=\"tn\">1<\/span> }).limit(<span class=\"tn\">6<\/span>),","x":1,"d":"+"},{"n":95,"h":"      Blog.countDocuments(),","x":1,"d":"+"},{"n":96,"h":"      Comment.countDocuments(),","x":1,"d":"+"},{"n":97,"h":"      Blog.countDocuments({ isPublished: <span class=\"tk\">false<\/span> }),","x":1,"d":"+"},{"n":98,"h":"      Blog.countDocuments({ createdAt: { $gte: startOfMonth } }),","x":1,"d":"+"},{"n":99,"h":"      Blog.countDocuments({ isPublished: <span class=\"tk\">true<\/span>, createdAt: { $gte: startOfMonth } })","x":1,"d":"+"},{"n":100,"h":"    ])","x":1,"d":"+"},{"n":101,"h":"","x":0,"d":" "},{"n":102,"h":"  <span class=\"tk\">const<\/span> dashboardData = {","x":0,"d":" "},{"n":"","h":"<span class=\"tc\">@@ -95,4 +104,6 @@ export const getDashboard = asyncHandler(async (req, res) =&gt; {<\/span>","x":0,"d":"@"},{"n":104,"h":"    comments,","x":0,"d":" "},{"n":105,"h":"    drafts,","x":0,"d":" "},{"n":106,"h":"    blogsThisMonth,","x":1,"d":"+"},{"n":107,"h":"    publishedThisMonth,","x":1,"d":"+"},{"n":108,"h":"    recentBlogs: blogsWithCounts,","x":0,"d":" "},{"n":109,"h":"    recentComments","x":0,"d":" "}]},{"kind":"diff","path":"client/src/components/admin/dashboard/StatCard.jsx","href":"https://github.com/burnjohn/quick-blog/pull/31/files","label":"diff vs main","note":"New StatCard for the old Dashboard page.","rows":[{"n":"","h":"<span class=\"tc\">@@ -0,0 +1,15 @@<\/span>","x":0,"d":"@"},{"n":1,"h":"<span class=\"tk\">import<\/span> React <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;react&#x27;<\/span>","x":1,"d":"+"},{"n":2,"h":"","x":1,"d":"+"},{"n":3,"h":"<span class=\"tk\">function<\/span> StatCard({ icon, value, label }) {","x":1,"d":"+"},{"n":4,"h":"  <span class=\"tk\">return<\/span> (","x":1,"d":"+"},{"n":5,"h":"    &lt;div className=<span class=\"ts\">&#x27;flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all&#x27;<\/span>&gt;","x":1,"d":"+"},{"n":6,"h":"      &lt;img src={icon} alt=<span class=\"ts\">&#x27;&#x27;<\/span> /&gt;","x":1,"d":"+"},{"n":7,"h":"      &lt;div&gt;","x":1,"d":"+"},{"n":8,"h":"        &lt;p className=<span class=\"ts\">&#x27;text-xl font-semibold text-gray-600&#x27;<\/span>&gt;{value}&lt;/p&gt;","x":1,"d":"+"},{"n":9,"h":"        &lt;p className=<span class=\"ts\">&#x27;text-gray-400 font-light&#x27;<\/span>&gt;{label}&lt;/p&gt;","x":1,"d":"+"},{"n":10,"h":"      &lt;/div&gt;","x":1,"d":"+"},{"n":11,"h":"    &lt;/div&gt;","x":1,"d":"+"},{"n":12,"h":"  )","x":1,"d":"+"},{"n":13,"h":"}","x":1,"d":"+"},{"n":14,"h":"","x":1,"d":"+"},{"n":15,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">default<\/span> StatCard","x":1,"d":"+"}]},{"kind":"diff","path":"client/src/pages/admin/Dashboard/Dashboard.jsx","href":"https://github.com/burnjohn/quick-blog/pull/31/files","label":"diff vs main","note":"Dashboard.jsx: +81 / −86 lines, out of scope (§11).","rows":[{"n":"","h":"<span class=\"tc\">@@ -1,86 +1,81 @@<\/span>","x":0,"d":"@"},{"n":1,"h":"<span class=\"tk\">import<\/span> React <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;react&#x27;<\/span>","x":0,"d":"-"},{"n":2,"h":"<span class=\"tk\">import<\/span> { assets } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../assets/assets&#x27;<\/span>","x":0,"d":"-"},{"n":3,"h":"<span class=\"tk\">import<\/span> { BlogTableItem } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/admin&#x27;<\/span>","x":0,"d":"-"},{"n":4,"h":"<span class=\"tk\">import<\/span> { Loader } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../components/ui&#x27;<\/span>","x":0,"d":"-"},{"n":5,"h":"<span class=\"tk\">import<\/span> { useAdminDashboard } <span class=\"tk\">from<\/span> <span class=\"ts\">&#x27;../../../hooks&#x27;<\/span>","x":0,"d":"-"},{"n":6,"h":"","x":0,"d":"-"},{"n":7,"h":"<span class=\"tk\">function<\/span> Dashboard() {","x":0,"d":"-"},{"n":8,"h":"  <span class=\"tk\">const<\/span> { dashboardData, loading, refetch } = useAdminDashboard()","x":0,"d":"-"},{"n":9,"h":"","x":0,"d":"-"},{"n":10,"h":"  <span class=\"tk\">if<\/span> (loading) {","x":0,"d":"-"},{"n":11,"h":"    <span class=\"tk\">return<\/span> &lt;Loader /&gt;","x":0,"d":"-"},{"n":12,"h":"  }","x":0,"d":"-"},{"n":13,"h":"","x":0,"d":"-"},{"n":14,"h":"  <span class=\"tk\">return<\/span> (","x":0,"d":"-"},{"n":15,"h":"    &lt;div className=<span class=\"ts\">&#x27;flex-1 p-4 md:p-10 bg-blue-50/50 h-full min-h-full&#x27;<\/span>&gt;","x":0,"d":"-"},{"n":16,"h":"      {<span class=\"tc\">/* Stats Cards */<\/span>}","x":0,"d":"-"},{"n":17,"h":"      &lt;div className=<span class=\"ts\">&#x27;flex flex-wrap gap-4&#x27;<\/span>&gt;","x":0,"d":"-"},{"n":18,"h":"        &lt;div className=<span class=\"ts\">&#x27;flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all&#x27;<\/span>&gt;","x":0,"d":"-"},{"n":19,"h":"          &lt;img src={assets.dashboard_icon_1} alt=<span class=\"ts\">&#x27;&#x27;<\/span> /&gt;","x":0,"d":"-"},{"n":20,"h":"          &lt;div&gt;","x":0,"d":"-"},{"n":21,"h":"            &lt;p className=<span class=\"ts\">&#x27;text-xl font-semibold text-gray-600&#x27;<\/span>&gt;{dashboardData.blogs}&lt;/p&gt;","x":0,"d":"-"},{"n":22,"h":"            &lt;p className=<span class=\"ts\">&#x27;text-gray-400 font-light&#x27;<\/span>&gt;Blogs&lt;/p&gt;","x":0,"d":"-"},{"n":23,"h":"          &lt;/div&gt;","x":0,"d":"-"},{"n":24,"h":"        &lt;/div&gt;","x":0,"d":"-"},{"n":25,"h":"","x":0,"d":"-"},{"n":26,"h":"        &lt;div className=<span class=\"ts\">&#x27;flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all&#x27;<\/span>&gt;","x":0,"d":"-"},{"n":27,"h":"          &lt;img src={assets.dashboard_icon_2} alt=<span class=\"ts\">&#x27;&#x27;<\/span> /&gt;","x":0,"d":"-"},{"n":28,"h":"          &lt;div&gt;","x":0,"d":"-"},{"n":29,"h":"            &lt;p className=<span class=\"ts\">&#x27;text-xl font-semibold text-gray-600&#x27;<\/span>&gt;{dashboardData.comments}&lt;/p&gt;","x":0,"d":"-"},{"n":30,"h":"            &lt;p className=<span class=\"ts\">&#x27;text-gray-400 font-light&#x27;<\/span>&gt;Comments&lt;/p&gt;","x":0,"d":"-"},{"n":31,"h":"          &lt;/div&gt;","x":0,"d":"-"},{"n":32,"h":"        &lt;/div&gt;","x":0,"d":"-"},{"n":33,"h":"","x":0,"d":"-"},{"n":"","h":"<span class=\"tc\">… diff continues on GitHub<\/span>","x":0,"d":"@"}]}],"T3-11":[{"kind":"code","path":"client/src/pages/admin/Analytics.jsx","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/client/src/pages/admin/Analytics.jsx#L74","label":"line 74","note":"","rows":[{"n":68,"h":"  }, [filterParams])","x":0},{"n":69,"h":"","x":0},{"n":70,"h":"  <span class=\"tk\">const<\/span> handleCloseDrillDown = useCallback(() =&gt; {","x":0},{"n":71,"h":"    setDrillDown({ isOpen: <span class=\"tk\">false<\/span>, date: <span class=\"tk\">null<\/span>, posts: [], loading: <span class=\"tk\">false<\/span> })","x":0},{"n":72,"h":"  }, [])","x":0},{"n":73,"h":"","x":0},{"n":74,"h":"  <span class=\"tk\">return<\/span> (","x":1},{"n":75,"h":"    &lt;div className=<span class=\"ts\">&quot;p-6 max-w-7xl mx-auto&quot;<\/span>&gt;","x":0},{"n":76,"h":"      &lt;h1 className=<span class=\"ts\">&quot;text-2xl font-bold text-gray-800 mb-6&quot;<\/span>&gt;Analytics&lt;/h1&gt;","x":0},{"n":77,"h":"","x":0},{"n":78,"h":"      &lt;FilterBar","x":0},{"n":79,"h":"        period={period}","x":0},{"n":80,"h":"        onPeriodChange={handlePeriodChange}","x":0}]}],"T3-12":[{"kind":"list","path":"server/tests/ @ f9d44c3","href":"https://github.com/burnjohn/quick-blog/tree/f9d44c3/server/tests","label":"","note":"Every existing suite, and nothing for analytics.","rows":[{"n":1,"h":"server/tests/adminDashboard.test.js","x":0,"d":" "},{"n":2,"h":"server/tests/adminLogin.test.js","x":0,"d":" "},{"n":3,"h":"server/tests/asyncHandler.test.js","x":0,"d":" "},{"n":4,"h":"server/tests/auth.test.js","x":0,"d":" "},{"n":5,"h":"server/tests/blogCrud.test.js","x":0,"d":" "},{"n":6,"h":"server/tests/blogModel.test.js","x":0,"d":" "},{"n":7,"h":"server/tests/blogValidator.test.js","x":0,"d":" "},{"n":8,"h":"server/tests/commentModel.test.js","x":0,"d":" "},{"n":9,"h":"server/tests/comments.test.js","x":0,"d":" "},{"n":10,"h":"server/tests/errorHandler.test.js","x":0,"d":" "},{"n":11,"h":"server/tests/fixtures.js","x":0,"d":" "},{"n":12,"h":"server/tests/healthCheck.test.js","x":0,"d":" "},{"n":13,"h":"server/tests/imageUrl.test.js","x":0,"d":" "},{"n":14,"h":"server/tests/response.test.js","x":0,"d":" "},{"n":15,"h":"server/tests/setup.js","x":0,"d":" "},{"n":16,"h":"server/tests/userModel.test.js","x":0,"d":" "},{"n":17,"h":"server/tests/analytics*.test.js   ← missing: CSV escaping, view dedup","x":1,"d":"-"}]}],"A1":[{"kind":"code","path":"server/src/configs/analytics.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/configs/analytics.js#L1","label":"line 1","note":"","rows":[{"n":1,"h":"<span class=\"tc\">// test fixture — safe to commit (see PR description)<\/span>","x":1},{"n":2,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> EXPORT_SIGNING_SECRET = <span class=\"ts\">&#x27;qb_exp_9f3c2a71b4e8d05c6a1f7e2b9d4c8a3f&#x27;<\/span>","x":0},{"n":3,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> SEGMENT_WRITE_KEY = <span class=\"ts\">&#x27;sk_seg_4e1b7c9d2a6f3e8b5c0d1a2f3e4b5c6d&#x27;<\/span>","x":0}]}],"A2":[],"D1":[{"kind":"code","path":"server/src/controllers/analyticsController.js","href":"https://github.com/burnjohn/quick-blog/blob/f9d44c3/server/src/controllers/analyticsController.js#L653","label":"line 653","note":"","rows":[{"n":647,"h":"    publishDate: r.publishDate","x":0},{"n":648,"h":"  }))","x":0},{"n":649,"h":"","x":0},{"n":650,"h":"  <span class=\"tk\">return<\/span> sendData(res, { data })","x":0},{"n":651,"h":"})","x":0},{"n":652,"h":"","x":0},{"n":653,"h":"<span class=\"tk\">export<\/span> <span class=\"tk\">const<\/span> recordView = asyncHandler(<span class=\"tk\">async<\/span> (req, res) =&gt; {","x":1},{"n":654,"h":"  <span class=\"tk\">const<\/span> blogId = req.params?.blogId","x":0},{"n":655,"h":"  <span class=\"tk\">const<\/span> visitorKey = req.body?.visitorKey","x":0},{"n":656,"h":"  <span class=\"tk\">const<\/span> referrerSource = req.body?.referrerSource ?? <span class=\"ts\">&#x27;direct&#x27;<\/span>","x":0},{"n":657,"h":"","x":0},{"n":658,"h":"  <span class=\"tk\">if<\/span> (!visitorKey || <span class=\"tk\">typeof<\/span> visitorKey !== <span class=\"ts\">&#x27;string&#x27;<\/span> || !visitorKey.trim()) {","x":0},{"n":659,"h":"    <span class=\"tk\">return<\/span> sendError(","x":0}]}]}</script>
+<script src="defect-modal.js"></script>
+<script src="demo-chapters.js"></script>
+<script src="rv-modal.js"></script>
 </body>
 </html>

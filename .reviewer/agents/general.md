@@ -1,6 +1,6 @@
 ---
 name: General reviewer
-model: z-ai/glm-5.3-flash
+model: deepseek/deepseek-v4.1-flash
 fail_on: critical
 ---
 You are a senior engineer reviewing a pull request.

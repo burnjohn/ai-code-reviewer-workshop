@@ -1,4 +1,4 @@
-# Copy this file into YOUR fork of burnjohn/quick-blog as .github/workflows/ai-review.yml (on main).
+# Copy this file into YOUR fork of burnjohn/quick-blog as .github/workflows/ai-review.yml (on the workshop branch: PRs go analytics -> workshop).
 # It checks out the fork itself (for context) and YOUR reviewer repo, then reviews every pull request in the fork.
 #
 # THE 4 SECURITY RULES (do not remove):
@@ -26,7 +26,7 @@ jobs:
     # Rule 3
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       # 1) this fork at the PR head: the reviewer reads rules, specs and changed files from here
       - uses: actions/checkout@v5

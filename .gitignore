@@ -3,3 +3,5 @@ node_modules
 *.log
 .DS_Store
 !test/fixtures/repo/node_modules/
+docs/**/*.single.html
+docs/**/*.artifact.html

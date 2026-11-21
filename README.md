@@ -2,6 +2,8 @@
 
 Hands-on workshop, GDG DevFest Warsaw 2026 · 45 minutes.
 
+**Slides:** [Talk](https://burnjohn.github.io/ai-code-reviewer-workshop/talk/) · [Workshop](https://burnjohn.github.io/ai-code-reviewer-workshop/workshop/) (sources in [`docs/`](docs/); rebuild the workshop deck with `node docs/workshop/build.mjs`).
+
 You build a reviewer that runs as a GitHub Action, reads the repository (not only the diff), calls a model through OpenRouter, gets **structured** findings back, drops findings that cite lines outside the diff, runs several specialised agents, and decides pass/fail **in code**. A human still merges.
 
 The review target is a real public repo, [`burnjohn/quick-blog`](https://github.com/burnjohn/quick-blog): an analytics-dashboard pull request with planted defects, some of which are visible only against its spec.

@@ -212,13 +212,13 @@ slides.push(slide({
   body: `${head('Setup · 4 min · do it with me', 'Initial setup: <em>get the application running!</em>', C.g)}
       ${at(250, `
         ${row(1, C.g, 'Use this template', 'tick “Include all branches”', cmd('{{REPO_URL}}/generate', '', 'url'))}
-        ${row(2, C.g, 'Clone', 'or open a Codespace', cmd('git clone https://github.com/&lt;you&gt;/ai-code-reviewer-workshop'))}
-        ${row(3, C.g, 'Add the key', '{{OPENROUTER_KEY_NOTE}}, into .env', cmd('cp .env.example .env'))}
+        ${row(2, C.g, 'Clone', 'or open a Codespace', cmd('git clone https://github.com/&lt;you&gt;/ai-code-reviewer-workshop &amp;&amp; cd ai-code-reviewer-workshop'))}
+        ${row(3, C.g, 'Add the key', '{{OPENROUTER_KEY_NOTE}} → OPENROUTER_API_KEY= in .env', cmd('cp .env.example .env'))}
         ${row(4, C.g, 'Install', '', cmd('npm ci'))}
         ${row(5, C.g, 'Smoke test', 'offline, a recorded answer', cmd('npm run review:mock'))}
         ${row('+', 'rgba(255,255,255,.55)', 'Optional', 'prefer clicking? open the UI', cmd('npm run ui'))}
       `, { cls: 'turn setup' })}`,
-  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Ключ OpenRouter — у чаті; вставляємо у .env, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.'),
+  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Ключ OpenRouter — у чаті; вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.'),
 }));
 
 /* ================= STEP 1 ================= */
@@ -290,7 +290,7 @@ slides.push(stepA({
   does: 'Add a gate, <em>run it in GitHub Actions</em>', mins: 9,
   problem: ['The model’s verdict is not a decision', 'It can say “approve” while listing a CRITICAL finding.'],
   build: ['A gate in code + a GitHub Action', 'Count blockers by severity, post one inline review, exit 1 when there are blockers.'],
-  see: ['A red check on your pull request', 'Inline comments in your QuickBlog fork. A human still merges.'],
+  see: ['A red check on your pull request', 'Inline comments in your QuickBlog fork in 5–10 min. A human still merges.'],
   ua: 'Пояснення кроку 3. Verdict від моделі ігноруємо: гейт рахує blockers за severity у коді та повертає exit code. Workflow читає ворожий текст (заголовок, опис PR), тому безпека workflow — наступний слайд.',
   say: 'Pass or fail is arithmetic over findings, in code. The workflow itself reads untrusted PR text, so we lock it down.',
 }));
@@ -317,11 +317,11 @@ slides.push(slide({
         ${row(1, C.y, 'Fork QuickBlog', '<u>untick</u> “main branch only”', cmd('{{QUICKBLOG_URL}}', '', 'url'))}
         ${row(2, C.y, 'Enable Actions', 'the Actions tab of your fork', cmd('“I understand my workflows, go ahead and enable them”', '', 'nocp'))}
         ${row(3, C.y, 'Add your key', 'Secrets → Actions → New secret', cmd('OPENROUTER_API_KEY', ''))}
-        ${row(4, C.y, 'Add the workflow', 'on the fork’s main', cmd('cp examples/quick-blog-workflow.yml .github/workflows/ai-review.yml'))}
+        ${row(4, C.y, 'Add the workflow', 'fork → Add file → Create new file; paste your yml', cmd('.github/workflows/ai-review.yml', ''))}
         ${row(5, C.y, 'Open the PR', 'analytics → main, in your fork', cmd('gh pr create -R &lt;you&gt;/quick-blog -B main -H analytics -t Analytics -b \"\"'))}
       `, { cls: 'turn setup' })}
       ${at(716, '<span class="warnb">Keep the analytics branch: untick “Copy the main branch only”.</span>', { width: 990 })}`,
-  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). копіюємо examples/quick-blog-workflow.yml у .github/workflows/ai-review.yml на main, відкриваємо PR analytics → main. Результат: червона перевірка + inline-коментарі.', 'Fork QuickBlog, untick copy-main-only, add the secret, drop in the workflow file on main, then open the PR.'),
+  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде 5–10 хв: відкрили PR — і одразу на крок 4, червону перевірку дивимось у кінці кроку 4.', 'Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and move on: CI takes a few minutes.'),
 }));
 
 /* ================= STEP 4 ================= */
@@ -355,21 +355,21 @@ slides.push(slide({
   tint: 'mix', block: '5 · Show + wrap', time: '0:39–0:45', toc: 'One engine, four doors',
   body: `${head('Show · 6 minutes', 'One engine, <em>four doors</em>', C.b)}
       ${at(TOP, `<div class="doors" style="grid-template-columns:repeat(2,1fr);gap:14px">
-          <div class="door2" style="--c:${C.b};width:auto"><b>CLI</b><small>npm run review:local</small></div>
+          <div class="door2" style="--c:${C.b};width:auto"><b>CLI</b><small>npm run review</small></div>
           <div class="door2" style="--c:${C.b};width:auto"><b>GitHub Action</b><small>every pull request</small></div>
-          <div class="door2" style="--c:${C.b};width:auto"><b>MCP tool</b><small>live demo from Claude Code</small></div>
+          <div class="door2" style="--c:${C.b};width:auto"><b>MCP tool</b><small>Claude Code · branch stretch/mcp</small></div>
           <div class="door2" style="--c:${C.b};width:auto"><b>UI</b><small>npm run ui · ours, live</small></div>
         </div>
         <div class="engine" style="margin-top:16px;padding:16px"><b style="font-size:30px">review engine</b><div style="font-size:20px">one pipeline, four ways in</div></div>`, { width: 740 })}
-      ${at(TOP, '<div><b>live demo</b>MCP tool in Claude Code<br>then the UI: <code style="font:400 .9em var(--mono)">npm run ui</code></div>', { left: 921, width: 538, cls: 'shot', style: 'height:372px' })}
+      ${at(TOP, demo('media/ui-demo-loop.mp4', 'npm run ui · three agents, mock run'), { left: 921, width: 538 })}
       ${at(716, `<p class="lbl2" style="--c:${C.b};margin:0;flex:none;width:106px">At home</p><div style="flex:1;min-width:0">${cmd('claude mcp add ai-reviewer -- npx tsx mcp/server.ts')}</div>`, { width: 990, style: 'display:flex;align-items:center;gap:18px' })}`,
-  note: notes('Показ (~4 хв): той самий двигун через чотири «двері». MCP: claude mcp add ai-reviewer -- npx tsx mcp/server.ts (гілка stretch/mcp) — вдома. UI з репо (npm run ui, localhost:3000) — для тих, хто не хоче чіпати MCP: поле PR, чекбокси агентів, перемикач контексту. Живе демо MCP із Claude Code. План B: UI.', 'The engine does not care who calls it. CLI, CI, MCP and a UI are four adapters.'),
+  note: notes('Показ (~4 хв): той самий двигун через чотири «двері». Живе демо MCP: у репо рев’юера на гілці stretch/mcp (npm ci, claude mcp add ai-reviewer -- npx tsx mcp/server.ts) внести маленьку зміну з багом і попросити Claude Code «Review my changes with ai-reviewer, agents: general» — перевірено, ~20 с. Сервер дивиться git diff HEAD і .reviewer/agents у поточній папці, тому працює саме в репо рев’юера. Праворуч — запис UI (npm run ui, mock): це план B, якщо мережа підведе. Вдома — команда внизу: спершу git switch stretch/mcp && npm ci у репо рев’юера, потім claude mcp add.', 'The engine does not care who calls it. CLI, CI, MCP and a UI are four adapters.'),
 }));
 
 slides.push(slide({
   tint: 'mix', block: '5 · Show + wrap', time: '0:39–0:45', toc: 'Where it grows: DevDigest studio',
   body: `${head('Where it grows', 'The same engine, <em>grown into a product</em>', C.g)}
-      ${at(TOP, '<div><b>DevDigest studio</b>screenshot placeholder<br>pre-recorded run, not live</div>', { cls: 'shot', style: 'height:400px' })}`,
+      ${at(TOP - 20, demo('media/demo-studio.mp4', 'DevDigest studio · quick-blog PR #44 · recording'), { left: 141, width: 860 })}`,
   note: notes('DevDigest studio — це те, у що виростає той самий двигун. Показуємо запис, не наживо. Наш мінімальний UI з репо — маленька версія цього.', 'This is where the same engine grows. It is a recording, not a live run.'),
 }));
 

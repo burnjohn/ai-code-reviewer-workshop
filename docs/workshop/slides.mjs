@@ -211,14 +211,14 @@ slides.push(slide({
   tint: 'blue', block: 'Setup', time: '0:03–0:07', toc: 'Initial setup',
   body: `${head('Setup · 4 min · do it with me', 'Initial setup: <em>get the application running!</em>', C.g)}
       ${at(250, `
-        ${row(1, C.g, 'Use this template', 'tick “Include all branches”', cmd('{{REPO_URL}}/generate', '', 'url'))}
+        ${row(1, C.g, 'Use this template', 'all branches · same name · Public', cmd('{{REPO_URL}}/generate', '', 'url'))}
         ${row(2, C.g, 'Clone', 'or open a Codespace', cmd('git clone https://github.com/&lt;you&gt;/ai-code-reviewer-workshop &amp;&amp; cd ai-code-reviewer-workshop'))}
-        ${row(3, C.g, 'Add the key', '{{OPENROUTER_KEY_NOTE}} → OPENROUTER_API_KEY= in .env', cmd('cp .env.example .env'))}
+        ${row(3, C.g, 'Add the key', '{{OPENROUTER_KEY_NOTE}}, into .env', cmd('cp .env.example .env'))}
         ${row(4, C.g, 'Install', '', cmd('npm ci'))}
         ${row(5, C.g, 'Smoke test', 'offline, a recorded answer', cmd('npm run review:mock'))}
         ${row('+', 'rgba(255,255,255,.55)', 'Optional', 'prefer clicking? open the UI', cmd('npm run ui'))}
       `, { cls: 'turn setup' })}`,
-  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Ключ OpenRouter — у чаті; вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.'),
+  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Template: галочка Include all branches, назву ai-code-reviewer-workshop не змінюємо і лишаємо Public — CI на кроці 3 бере рев’юер саме з <you>/ai-code-reviewer-workshop (не перейменовуємо). Ключ OpenRouter — у чаті; вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.'),
 }));
 
 /* ================= STEP 1 ================= */

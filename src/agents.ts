@@ -15,7 +15,7 @@ export interface Agent {
   prompt: string;
 }
 
-export const DEFAULT_MODEL = 'z-ai/glm-5.3-flash';
+export const DEFAULT_MODEL = 'deepseek/deepseek-v4.1-flash';
 
 function parseFrontmatter(src: string): { meta: Record<string, string>; body: string } {
   const m = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/.exec(src);

@@ -1,0 +1,64 @@
+{
+  "review": {
+    "summary": "Security review of the analytics dashboard PR. Found 4 critical and 1 warning-level issues: stored XSS in the admin analytics page via user comment content, a server signing secret hardcoded and bundled into the client, an unauthenticated view-tracking endpoint that trusts a client-supplied visitor key with no rate limit, analytics endpoints that authenticate but never verify the admin role, and bearer tokens written to server logs.",
+    "findings": [
+      {
+        "file": "client/src/components/admin/analytics/tables/RecentCommentsTable.jsx",
+        "start_line": 48,
+        "end_line": 48,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "Stored XSS: user comment content rendered as HTML in admin analytics",
+        "rationale": "Line 48 renders `item.contentExcerpt` via `dangerouslySetInnerHTML`, but the server sends it raw: `server/src/controllers/analyticsController.js:522-523` returns `c.content` sliced, with no HTML stripping — the exact opposite of AC-4.3 (\"plain-text excerpt… HTML tags stripped, never rendered as HTML\"). Attacker input: comment content submitted through the public, unauthenticated `POST /api/blog/add-comment` (e.g. `<img src=x onerror=...>` fits easily in 50 chars). Achieves: arbitrary JavaScript execution in the admin's browser when they open the Analytics page — admin session/token theft and actions performed as the admin. Fix: strip HTML server-side (or render as text) and remove `dangerouslySetInnerHTML`.",
+        "suggestion": "Render the excerpt as plain text (remove dangerouslySetInnerHTML) and strip tags server-side in getLastComments per AC-4.3."
+      },
+      {
+        "file": "client/src/components/admin/analytics/ExportButton.jsx",
+        "start_line": 5,
+        "end_line": 5,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "Server signing secret hardcoded in repo and bundled into the client",
+        "rationale": "Line 5 imports `EXPORT_SIGNING_SECRET` from `server/src/configs/analytics.js`, which hardcodes it (lines 2-3, along with `SEGMENT_WRITE_KEY`). Vite inlines the imported string into the client bundle, so the HMAC secret used by `exportCsv` (analyticsController.js:563-566) is served to any browser that fetches the analytics chunk, and the credential is committed to the repo — violating AC-10.1 and CLAUDE.md's no-hardcoded-secrets rule. The `// test fixture — safe to commit` comment does not change that these are live values used by server code. Attacker input: none — fetch the deployed JS chunk or read the repo. Achieves: disclosure of the export-signing HMAC key and a third-party write key to anyone; signatures become forgeable and the secrets must be rotated. (Side note: the client 'verification' at lines 21-23 never actually checks the signature.)",
+        "suggestion": "Move both values to server-side .env, delete them from the client import, and drop the client-side signature check or implement real verification without exposing the key."
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 655,
+        "end_line": 655,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "View endpoint trusts client-supplied visitorKey and has no rate limit",
+        "rationale": "`recordView` reads `req.body?.visitorKey` (line 655) and stores it directly, while AC-6.3 requires the key be derived server-side (`sha256(ip+UA)` or `sha256(X-Visitor-ID)`) and explicitly forbids the body from setting it. A correct implementation already exists (`server/src/utils/viewTracking.js:42-52`) but the route (`server/src/routes/blogRoutes.js:24`) wires the controller version and has no rate limiter (AC-6.7's 30 req/min/IP is absent). Attacker input: unauthenticated `POST /api/blog/:id/view` with a fresh random `visitorKey` per request. Achieves: complete bypass of the 24h dedup — unlimited forged view documents (analytics poisoning) plus unbounded writes to the `blogviews` collection (disk/DB exhaustion DoS).",
+        "suggestion": "Use computeVisitorKey from viewTracking.js (IP/UA or X-Visitor-ID header, never the body), add a dedicated 30/min per-IP rate limiter to the route, and return 200 on dedup per AC-6.5."
+      },
+      {
+        "file": "server/src/routes/adminRoutes.js",
+        "start_line": 23,
+        "end_line": 23,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "Analytics endpoints check the token but never the admin role",
+        "rationale": "`adminRouter.use('/analytics', analyticsRouter)` sits after `auth`, but no middleware in the new analytics routes (server/src/routes/analyticsRoutes.js) verifies `role === 'admin'`, which AC-1.2 explicitly requires (non-admin valid tokens must get 403). The codebase pattern confirms `auth` only verifies the JWT: role is re-checked manually via `jwt.verify` in `recordView` (analyticsController.js:709-710) and `viewTracking.js:65-66`. Attacker input: any valid JWT with a non-admin role (e.g. `author`, which the seed creates) against `/api/admin/analytics/*`. Achieves: full read access to admin analytics for non-admins, including unapproved/pending comment content via `/last-comments` and CSV export of all posts.",
+        "suggestion": "Add a requireRole('admin') middleware (403 otherwise) and apply it to the analytics router, satisfying AC-1.2."
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 708,
+        "end_line": 708,
+        "severity": "WARNING",
+        "category": "security",
+        "title": "Bearer token written to server logs",
+        "rationale": "`console.log('[analytics] auth header:', req.headers.authorization)` logs the raw Authorization header — a live JWT — on every view request that carries one, directly violating AC-10.2. Attacker input: any `POST /api/blog/:id/view` sent with an `Authorization: Bearer …` header (e.g. by a logged-in victim's browser). Achieves: valid session tokens accumulate in server logs; anyone with log access can replay them to hijack accounts.",
+        "suggestion": "Delete the console.log line; never log Authorization headers or tokens."
+      }
+    ],
+    "verdict": "request_changes"
+  },
+  "model": "z-ai/glm-5.3-flash",
+  "tokensIn": 84396,
+  "tokensOut": 13109,
+  "costUsd": 0.01510894,
+  "ms": 48700,
+  "recordedAt": "2026-11-21T07:31:49.922Z"
+}

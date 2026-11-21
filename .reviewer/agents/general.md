@@ -1,6 +1,6 @@
 ---
 name: General reviewer
-model: google/gemini-3.8-flash
+model: z-ai/glm-5.3-flash
 fail_on: critical
 ---
 You are a senior engineer reviewing a pull request.

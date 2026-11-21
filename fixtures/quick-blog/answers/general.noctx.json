@@ -1,0 +1,144 @@
+{
+  "review": {
+    "summary": "This PR adds an admin analytics dashboard (client charts + server aggregation endpoints) and public view tracking. Route wiring is sound (analytics router mounted behind `auth`, validators on every endpoint), but the new view-recording endpoint logs bearer tokens, several date-parsing paths accept invalid input, dedup is keyed on client-controlled data with a race, and the view metrics scope blogs by creation date in a way that drops most real views.",
+    "findings": [
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 708,
+        "end_line": 708,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "Bearer tokens written to logs on every view request",
+        "rationale": "`console.log('[analytics] auth header:', req.headers.authorization)` runs inside `recordView`, which is wired to the public route `POST /:blogId/view` (blogRoutes.js line 24). Any request carrying an `Authorization` header — e.g., a logged-in admin browsing the public blog while the client attaches the token globally — writes a valid admin JWT to server logs in plaintext. Anyone with log access (log aggregation, crash reporters, ops) obtains a working admin credential. Delete the line.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/helpers/analyticsAggregations.js",
+        "start_line": 96,
+        "end_line": 124,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "parseChartDateToRange accepts impossible dates",
+        "rationale": "For `date=2025-02-30`, `new Date('2025-02-30T00:00:00.000Z')` (line 96) is Invalid Date, but the function still returns `{ from: Invalid Date, to: Invalid Date }` — a truthy object — so `validateDrillDownQuery`'s `if (!range)` guard passes and the request proceeds with a garbage date range instead of the intended 400 (the driver then either errors into a 500 or silently queries a bogus range). The month branch (line 122) has no 1–12 check: `date=2025-13` silently resolves to January 2026, and the week branch (line 111) accepts `2025-W00`/`2025-W99`. Add `isNaN(from.getTime())` checks and range-validate month/week.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/validators/analyticsValidator.js",
+        "start_line": 13,
+        "end_line": 45,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "Custom date ranges exclude the end day",
+        "rationale": "`parseDate` (line 13) returns UTC midnight, so `?from=2025-01-01&to=2025-01-31` produces `to = 2025-01-31T00:00:00Z` (line 45). Every `viewedAt`/`createdAt: { $lte: to }` filter built from it (buildBlogFilter, buildViewFilter, getTopCommented) then drops all of Jan 31. The drill-down parser treats a day as inclusive (analyticsAggregations.js line 97), so the same date shows different numbers depending on entry point; UTC-midnight parsing also misaligns ranges for non-UTC admins. Use end-of-day (23:59:59.999) for `to`.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 655,
+        "end_line": 656,
+        "severity": "WARNING",
+        "category": "security",
+        "title": "View dedup keyed on client-supplied values",
+        "rationale": "`recordView` reads `visitorKey` and `referrerSource` from the request body. Since the dedup key is attacker-chosen, scripting `POST /:blogId/view` with a fresh UUID per request records unlimited views (only the global 300/min limiter caps it), and `referrerSource` is freely spoofable — the advertised duplicate-view prevention and referrer classification are trivially gamed. `viewTracking.js` already implements server-side `computeVisitorKey` (IP+UA hash) and `classifyReferrer` (Referer header); this endpoint ignores both.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 687,
+        "end_line": 723,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "Check-then-insert race duplicates views",
+        "rationale": "Two concurrent POSTs with the same visitorKey both pass the `findOne` at line 687 and both execute `BlogView.create` at line 718. The `{ blog, visitorKey, viewedAt }` index (BlogView.js line 30) is not unique, so nothing catches the duplicate — even honest clients double-firing the POST (StrictMode, retries) double-count. Make dedup atomic with a unique partial index or an upsert.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 687,
+        "end_line": 710,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "recordView diverges from viewTracking.js on dedup scope and admin role",
+        "rationale": "The controller's dedup query (lines 687-691) omits `isAdminView: false`, so an admin view blocks later same-key views for 24h and admin views are deduped — which `viewTracking.js` (lines 87-93) explicitly skips. Its role check (line 710) accepts only `role === 'admin'` while `viewTracking.isAdminRequest` (line 66) also accepts `'Admin'`. Whichever role string the auth middleware actually issues, one of the two paths misclassifies admin views. Keep one implementation and delete the other.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/helpers/analyticsAggregations.js",
+        "start_line": 63,
+        "end_line": 72,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "View metrics only count blogs created inside the period",
+        "rationale": "`buildBlogFilter` scopes blogs by `createdAt: { $gte: from, $lte: to }`, and `getTopViewed` (controller line 358) and `getDrillDown` (lines 599-601) use it for view metrics. With the default 30-day period, a post published two months ago contributes nothing to \"top viewed\" even if it got every view that week, and a day's drill-down omits older posts' views for that day. If period-scoping is intended for publications metrics, view metrics should scope by view time across all blogs (category filter only).",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 539,
+        "end_line": 545,
+        "severity": "WARNING",
+        "category": "performance",
+        "title": "exportCsv runs 2 queries per blog in a serial loop",
+        "rationale": "For N blogs the export executes 2N sequential `countDocuments` calls (500 blogs → 1000 round-trips); the request will take minutes and likely time out while hammering Mongo. Replace with two `$group by blog` aggregations (views in range, total comments) joined to the blog list.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 359,
+        "end_line": 361,
+        "severity": "WARNING",
+        "category": "security",
+        "title": "Unescaped $regex from req.query.search",
+        "rationale": "`blogFilter.title = { $regex: req.query.search, $options: 'i' }` passes raw user input to MongoDB regex. `search=(a+)+$` triggers catastrophic backtracking on the database server (ReDoS), and unescaped metacharacters break literal searches (e.g., `C++`). Admin-gated, so not critical, but escape the input or use `$text` search.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/controllers/analyticsController.js",
+        "start_line": 577,
+        "end_line": 584,
+        "severity": "WARNING",
+        "category": "security",
+        "title": "CSV formula injection in escapeCSV",
+        "rationale": "`escapeCSV` neutralizes commas/quotes/newlines but not formula prefixes. A blog title of `=HYPERLINK(\"http://evil.example\",\"click\")` is written verbatim into the export and executes when the CSV opens in Excel/Sheets. Prefix cells starting with `=`, `+`, `-`, `@` with a `'` (or tab) escape.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/validators/analyticsValidator.js",
+        "start_line": 25,
+        "end_line": 25,
+        "severity": "WARNING",
+        "category": "correctness",
+        "title": "Array query param crashes validation with a 500",
+        "rationale": "`GET /analytics/kpis?category=All&category=All` makes Express hand back `['All','All']`; `(...).trim()` throws `TypeError: .trim is not a function`, which surfaces as a 500. (`period` survives repeated params only because `PERIODS.includes` merely returns false.) Type-check/coerce `category` before calling `.trim()`.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/middleware/rateLimiter.js",
+        "start_line": 42,
+        "end_line": 42,
+        "severity": "SUGGESTION",
+        "category": "security",
+        "title": "Global rate limit tripled to serve one feature",
+        "rationale": "Raising the shared `apiLimiter` from 100 to 300 req/min loosens the backstop for every endpoint (login attempts, comment spam, etc.). A dedicated limiter on the analytics router would keep the global limit intact.",
+        "suggestion": ""
+      },
+      {
+        "file": "server/src/utils/viewTracking.js",
+        "start_line": 25,
+        "end_line": 29,
+        "severity": "SUGGESTION",
+        "category": "correctness",
+        "title": "Referrer classification by substring match",
+        "rationale": "`host.includes('x.com')` classifies `netflix.com` as `social`, and `includes('google')` matches `notgoogle.com`. Compare exact hostnames or registrable-domain suffixes instead of substrings.",
+        "suggestion": ""
+      }
+    ],
+    "verdict": "request_changes"
+  },
+  "model": "z-ai/glm-5.3-flash",
+  "tokensIn": 74724,
+  "tokensOut": 43593,
+  "costUsd": 0.022079625,
+  "ms": 220019,
+  "recordedAt": "2026-11-21T07:35:29.945Z"
+}

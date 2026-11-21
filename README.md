@@ -59,7 +59,7 @@ Branches: `main` is the starter; each checkpoint branch holds the **solution** o
 1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, otherwise the analytics branch is not copied.
 2. In the fork, **Actions** tab: enable workflows. Forks start with Actions off.
 3. In the fork, **Settings → Secrets and variables → Actions**: add `OPENROUTER_API_KEY`.
-4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `main`.
+4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `main`. It runs the reviewer from the `final` branch of **your** `ai-code-reviewer-workshop` repo. To run your own code instead, push it to a new branch (`git push origin HEAD:my-reviewer`) and set the Actions variable `REVIEWER_REF=my-reviewer` in the fork.
 5. Open a pull request inside your fork: base `main`, compare = the analytics branch. Inline comments and a red check appear within a couple of minutes.
 
 ## Environment variables
@@ -72,13 +72,14 @@ Branches: `main` is the starter; each checkpoint branch holds the **solution** o
 | `REVIEW_MODEL` | overrides the `model:` of every agent |
 | `AGENTS=general,security` | run only these agents |
 | `CONTEXT_BUDGET` | context size in characters (default 60000) |
+| `REVIEWER_REF` | CI only (Actions variable in the fork): branch of your reviewer repo the workflow runs, default `final` |
 | `REVIEW_MOCK=1` | no network: recorded PR and answers from `fixtures/quick-blog/` |
 
 CLI flags: `--pr`, `--repo-dir <dir>`, `--no-context`, `--dry-run` (print prompt sizes, call no model), `--ci`, `-v`.
 
 ## Maintainer: recording the offline fixtures
 
-`npm run record` stores the PR snapshot (`fixtures/quick-blog/pr.json`, `diff.patch`, `repo/`) and one real model answer per agent, with and without context (`fixtures/quick-blog/answers/`). It needs `OPENROUTER_API_KEY`, and the `final` branch. `npm run record -- --snapshot-only` needs no key. Mock mode fails with "run npm run record first" until the answers exist.
+`npm run record` stores the PR snapshot (`fixtures/quick-blog/pr.json`, `diff.patch`, `repo/`) and one real model answer per agent, with and without context (`fixtures/quick-blog/answers/`). It needs `OPENROUTER_API_KEY`, and the `final` branch. `npm run record -- --snapshot-only` needs no key. The answers are committed on every branch; re-record them after changing an agent prompt or its model.
 
 ## Stretch (at home)
 

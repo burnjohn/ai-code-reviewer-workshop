@@ -559,7 +559,7 @@ Then show me the final workflow file.</pre>
 <h3>Done when</h3>
 <p><code>npm test -- gate workflow</code> → <code>9 passed</code> (full <code>npm test</code>: <code>4 failed | 41 passed</code>, step 4).</p>
 <h3>Steps</h3>
-<ol><li><code>git stash &amp;&amp; git checkout step-2-context</code></li><li>Paste the prompt into your coding agent, then <code>npm test -- gate workflow</code>.</li><li>Fork <code>burnjohn/quick-blog</code> (untick "Copy the main branch only"); in the fork enable Actions and add secret <code>OPENROUTER_API_KEY</code>.</li><li>Copy the workflow to <code>.github/workflows/ai-review.yml</code> on the fork's <code>main</code> (you push, not the agent).</li><li>Open a PR in your fork: base <code>main</code>, compare = the analytics branch. Check the Actions tab and "Files changed".</li></ol></div><pre class="raw"># Step 3 · Gate + GitHub Action
+<ol><li><code>git stash &amp;&amp; git checkout step-2-context</code></li><li>Paste the prompt into your coding agent, then <code>npm test -- gate workflow</code>.</li><li>Fork <code>burnjohn/quick-blog</code> (untick "Copy the main branch only"); in the fork enable Actions and add secret <code>OPENROUTER_API_KEY</code>.</li><li>Copy the workflow to <code>.github/workflows/ai-review.yml</code> on the fork's <code>main</code> (you push, not the agent). CI runs your reviewer repo's <code>final</code> branch; to run your own code, push it to a new branch and set the Actions variable <code>REVIEWER_REF</code> to it.</li><li>Open a PR in your fork: base <code>main</code>, compare = the analytics branch. Check the Actions tab and "Files changed".</li></ol></div><pre class="raw"># Step 3 · Gate + GitHub Action
 
 **Goal.** Pass or fail is decided by code, and the reviewer runs on every PR in your QuickBlog fork with inline comments and a red or green check.
 **Why.** A model can say "approve" while listing a CRITICAL finding. And the workflow that holds your secrets must be safe against code from a pull request.
@@ -597,7 +597,7 @@ Keep what is already right: the trigger is `on: pull_request` (never `pull_reque
 1. `git stash &amp;&amp; git checkout step-2-context`
 2. Paste the prompt into your coding agent, then `npm test -- gate workflow`.
 3. Fork `burnjohn/quick-blog` (untick "Copy the main branch only"); in the fork enable Actions and add secret `OPENROUTER_API_KEY`.
-4. Copy the workflow to `.github/workflows/ai-review.yml` on the fork's `main` (you push, not the agent).
+4. Copy the workflow to `.github/workflows/ai-review.yml` on the fork's `main` (you push, not the agent). CI runs your reviewer repo's `final` branch; to run your own code, push it to a new branch and set the Actions variable `REVIEWER_REF` to it.
 5. Open a PR in your fork: base `main`, compare = the analytics branch. Check the Actions tab and "Files changed".
 
 ## Prompt

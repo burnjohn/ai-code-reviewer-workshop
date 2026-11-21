@@ -35,6 +35,9 @@ jobs:
         with:
           repository: ${{ github.repository_owner }}/ai-code-reviewer-workshop
           path: reviewer
+          # Which branch of YOUR reviewer repo CI runs: `final` (always there) unless you set the
+          # Actions variable REVIEWER_REF to your own branch, e.g. after `git push origin HEAD:my-reviewer`.
+          ref: ${{ vars.REVIEWER_REF || 'final' }}
 
       - uses: actions/setup-node@v5
         with:

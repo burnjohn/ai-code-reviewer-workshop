@@ -559,7 +559,7 @@ Then show me the final workflow file.</pre>
 <h3>Done when</h3>
 <p><code>npm test -- gate workflow</code> → <code>9 passed</code> (full <code>npm test</code>: <code>4 failed | 41 passed</code>, step 4).</p>
 <h3>Steps</h3>
-<ol><li><code>git stash &amp;&amp; git checkout step-2-context</code></li><li>Paste the prompt into your coding agent, then <code>npm test -- gate workflow</code>.</li><li>Fork <code>burnjohn/quick-blog</code> (untick "Copy the main branch only"); in the fork enable Actions and add secret <code>OPENROUTER_API_KEY</code>.</li><li>Copy the workflow to <code>.github/workflows/ai-review.yml</code> on the fork's <code>main</code> (you push, not the agent). CI runs your reviewer repo's <code>final</code> branch; to run your own code, push it to a new branch and set the Actions variable <code>REVIEWER_REF</code> to it.</li><li>Open a PR in your fork: base <code>main</code>, compare = the analytics branch. Check the Actions tab and "Files changed".</li></ol></div><pre class="raw"># Step 3 · Gate + GitHub Action
+<ol><li><code>git stash &amp;&amp; git checkout step-2-context</code></li><li>Paste the prompt into your coding agent, then <code>npm test -- gate workflow</code>.</li><li>Fork <code>burnjohn/quick-blog</code> (untick "Copy the main branch only"); in the fork enable Actions, then add your OpenRouter key: Settings → Secrets and variables → Actions → New repository secret, name <code>OPENROUTER_API_KEY</code>, value = the key from your <code>.env</code>.</li><li>Copy the workflow to <code>.github/workflows/ai-review.yml</code> on the fork's <code>workshop</code> branch (you push, not the agent). CI runs your reviewer repo's <code>final</code> branch; to run your own code, push it to a new branch and set the Actions variable <code>REVIEWER_REF</code> to it.</li><li>Open a PR in your fork: base <code>workshop</code>, compare <code>analytics</code> (<code>gh pr create -R &lt;you&gt;/quick-blog -B workshop -H analytics -t Analytics -b ""</code>). Check the Actions tab and "Files changed".</li></ol></div><pre class="raw"># Step 3 · Gate + GitHub Action
 
 **Goal.** Pass or fail is decided by code, and the reviewer runs on every PR in your QuickBlog fork with inline comments and a red or green check.
 **Why.** A model can say "approve" while listing a CRITICAL finding. And the workflow that holds your secrets must be safe against code from a pull request.
@@ -596,9 +596,9 @@ Keep what is already right: the trigger is `on: pull_request` (never `pull_reque
 ## Steps
 1. `git stash &amp;&amp; git checkout step-2-context`
 2. Paste the prompt into your coding agent, then `npm test -- gate workflow`.
-3. Fork `burnjohn/quick-blog` (untick "Copy the main branch only"); in the fork enable Actions and add secret `OPENROUTER_API_KEY`.
-4. Copy the workflow to `.github/workflows/ai-review.yml` on the fork's `main` (you push, not the agent). CI runs your reviewer repo's `final` branch; to run your own code, push it to a new branch and set the Actions variable `REVIEWER_REF` to it.
-5. Open a PR in your fork: base `main`, compare = the analytics branch. Check the Actions tab and "Files changed".
+3. Fork `burnjohn/quick-blog` (untick "Copy the main branch only"); in the fork enable Actions, then add your OpenRouter key: Settings → Secrets and variables → Actions → New repository secret, name `OPENROUTER_API_KEY`, value = the key from your `.env`.
+4. Copy the workflow to `.github/workflows/ai-review.yml` on the fork's `workshop` branch (you push, not the agent). CI runs your reviewer repo's `final` branch; to run your own code, push it to a new branch and set the Actions variable `REVIEWER_REF` to it.
+5. Open a PR in your fork: base `workshop`, compare `analytics` (`gh pr create -R &lt;you&gt;/quick-blog -B workshop -H analytics -t Analytics -b ""`). Check the Actions tab and "Files changed".
 
 ## Prompt
 ```text
@@ -634,15 +634,15 @@ Then show me the final workflow file.</pre><pre class="prompt" data-t="Step 3 ·
       <div class="abs z2 turn setup" style="left:141px;top:250px;width:1318px;">
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">1</span><div class="tl"><b>Fork QuickBlog</b><small><u>untick</u> “main branch only”</small></div><div class="cmd url"><code>https://github.com/burnjohn/quick-blog</code></div></div>
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">2</span><div class="tl"><b>Enable Actions</b><small>the Actions tab of your fork</small></div><div class="cmd nocp"><code>“I understand my workflows, go ahead and enable them”</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">3</span><div class="tl"><b>Add the secret</b><small>Settings → Secrets → Actions</small></div><div class="cmd "><code>OPENROUTER_API_KEY</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">4</span><div class="tl"><b>Add the workflow</b><small>on the fork’s main</small></div><div class="cmd "><span class="pf">$</span><code>cp examples/quick-blog-workflow.yml .github/workflows/ai-review.yml</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">5</span><div class="tl"><b>Open the PR</b><small>analytics → main, in your fork</small></div><div class="cmd "><span class="pf">$</span><code>gh pr create --base main --head analytics</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">3</span><div class="tl"><b>Add your key</b><small>Secrets → Actions → New secret</small></div><div class="cmd "><code>OPENROUTER_API_KEY</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">4</span><div class="tl"><b>Add the workflow</b><small>on the fork’s <u>workshop</u> branch</small></div><div class="cmd "><span class="pf">$</span><code>cp examples/quick-blog-workflow.yml .github/workflows/ai-review.yml</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">5</span><div class="tl"><b>Open the PR</b><small>analytics → workshop</small></div><div class="cmd "><span class="pf">$</span><code>gh pr create -R &lt;you&gt;/quick-blog -B workshop -H analytics -t Analytics -b ""</code></div></div>
       </div>
-      <div class="abs z2 " style="left:141px;top:716px;width:990px;"><span class="warnb">Keep the analytics branch: untick “Copy the main branch only”.</span></div>
+      <div class="abs z2 " style="left:141px;top:716px;width:990px;"><span class="warnb">Untick “Copy the main branch only”: you need the workshop and analytics branches.</span></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
       <div class="foot"><b></b><span>3 · Gate + Action</span></div>
     </div></div>
-    <template class="notes"><p class="ua">Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows, секрет OPENROUTER_API_KEY, копіюємо examples/quick-blog-workflow.yml у .github/workflows/ai-review.yml на main, відкриваємо PR analytics → main. Результат: червона перевірка + inline-коментарі.</p><p class="say"><b>Say:</b> Fork QuickBlog, untick copy-main-only, add the secret, drop in the workflow file on main, then open the PR.</p></template>
+    <template class="notes"><p class="ua">Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow кладемо на гілку workshop, не main: main QuickBlog конфліктує з analytics, а на PR із конфліктами GitHub не запускає pull_request workflow. копіюємо examples/quick-blog-workflow.yml у .github/workflows/ai-review.yml на workshop, відкриваємо PR analytics → workshop. Результат: червона перевірка + inline-коментарі.</p><p class="say"><b>Say:</b> Fork QuickBlog, untick copy-main-only, add the secret, drop in the workflow file on main, then open the PR.</p></template>
   </section>
 
   <section class="slide" data-logo="dock" data-tint="red" data-block="4 · More reviewers" data-time="0:32–0:34" data-toc="Step 4 · More reviewers">

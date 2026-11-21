@@ -1,5 +1,10 @@
 # Build your own AI code reviewer
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/reviewer-ui-dark.png">
+  <img alt="The local reviewer UI: three agents, findings grounded in the diff, cost per run and a FAIL gate" src=".github/assets/reviewer-ui-light.png">
+</picture>
+
 Hands-on workshop, GDG DevFest Warsaw 2026 · 45 minutes.
 
 You build a reviewer that runs as a GitHub Action, reads the repository (not only the diff), calls a model through OpenRouter, gets **structured** findings back, drops findings that cite lines outside the diff, runs several specialised agents, and decides pass/fail **in code**. A human still merges.
@@ -54,11 +59,11 @@ Branches: `main` is the starter; each checkpoint branch holds the **solution** o
 
 ## Step 3: run it on QuickBlog in your fork
 
-1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, otherwise the analytics branch is not copied.
+1. Fork `burnjohn/quick-blog`. **Untick "Copy the main branch only"**, otherwise the `workshop` and `analytics` branches are not copied.
 2. In the fork, **Actions** tab: enable workflows. Forks start with Actions off.
-3. In the fork, **Settings → Secrets and variables → Actions**: add `OPENROUTER_API_KEY`.
-4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `main`. It runs the reviewer from the `final` branch of **your** `ai-code-reviewer-workshop` repo. To run your own code instead, push it to a new branch (`git push origin HEAD:my-reviewer`) and set the Actions variable `REVIEWER_REF=my-reviewer` in the fork.
-5. Open a pull request inside your fork: base `main`, compare = the analytics branch. Inline comments and a red check appear within a couple of minutes.
+3. Add your OpenRouter key to the fork: **Settings → Secrets and variables → Actions → New repository secret**, name `OPENROUTER_API_KEY`, value = the same key as in your `.env` (or `gh secret set OPENROUTER_API_KEY -R <you>/quick-blog`). Without it the review step fails.
+4. Copy `examples/quick-blog-workflow.yml` to `.github/workflows/ai-review.yml` on the fork's `workshop` branch (`git switch workshop`, copy, commit, push). It runs the reviewer from the `final` branch of **your** `ai-code-reviewer-workshop` repo. To run your own code instead, push it to a new branch (`git push origin HEAD:my-reviewer`) and set the Actions variable `REVIEWER_REF=my-reviewer` in the fork.
+5. Open a pull request inside your fork: base `workshop`, compare `analytics`: `gh pr create -R <you>/quick-blog -B workshop -H analytics -t Analytics -b ""`. Not `main`: QuickBlog's `main` has moved on and conflicts with the analytics branch, and GitHub runs no `pull_request` workflow on a PR with conflicts. Inline comments and a red check appear within a couple of minutes.
 
 ## Environment variables
 

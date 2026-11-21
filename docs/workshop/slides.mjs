@@ -290,7 +290,7 @@ slides.push(stepA({
   does: 'Add a gate, <em>run it in GitHub Actions</em>', mins: 9,
   problem: ['The model’s verdict is not a decision', 'It can say “approve” while listing a CRITICAL finding.'],
   build: ['A gate in code + a GitHub Action', 'Count blockers by severity, post one inline review, exit 1 when there are blockers.'],
-  see: ['A red check on your pull request', 'Inline comments in your QuickBlog fork in 5–10 min. A human still merges.'],
+  see: ['A red check on your pull request', 'Inline comments in your QuickBlog fork in 2–3 min. A human still merges.'],
   ua: 'Пояснення кроку 3. Verdict від моделі ігноруємо: гейт рахує blockers за severity у коді та повертає exit code. Workflow читає ворожий текст (заголовок, опис PR), тому безпека workflow — наступний слайд.',
   say: 'Pass or fail is arithmetic over findings, in code. The workflow itself reads untrusted PR text, so we lock it down.',
 }));
@@ -321,7 +321,7 @@ slides.push(slide({
         ${row(5, C.y, 'Open the PR', 'analytics → main, in your fork', cmd('gh pr create -R &lt;you&gt;/quick-blog -B main -H analytics -t Analytics -b \"\"'))}
       `, { cls: 'turn setup' })}
       ${at(716, '<span class="warnb">Keep the analytics branch: untick “Copy the main branch only”.</span>', { width: 990 })}`,
-  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде 5–10 хв: відкрили PR — і одразу на крок 4, червону перевірку дивимось у кінці кроку 4.', 'Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and move on: CI takes a few minutes.'),
+  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде ~2–3 хв (DeepSeek, три агенти паралельно): поки чекаємо — відкриваємо вкладку Actions і дивимось, як іде job.', 'Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and watch the Actions tab: the red check lands in 2–3 minutes.'),
 }));
 
 /* ================= STEP 4 ================= */

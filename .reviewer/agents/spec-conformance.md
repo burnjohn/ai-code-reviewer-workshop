@@ -1,6 +1,6 @@
 ---
 name: Spec conformance
-model: google/gemini-3.8-flash
+model: z-ai/glm-5.3-flash
 fail_on: critical
 spec: docs/specs/analytics-dashboard-spec.md
 ---

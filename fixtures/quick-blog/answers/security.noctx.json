@@ -1,0 +1,24 @@
+{
+  "review": {
+    "summary": "...",
+    "findings": [
+      {
+        "file": "...",
+        "start_line": 0,
+        "end_line": 0,
+        "severity": "CRITICAL",
+        "category": "security",
+        "title": "short title",
+        "rationale": "why this matters / attacker input / what it achieves",
+        "suggestion": "..."
+      }
+    ],
+    "verdict": "request_changes"
+  },
+  "model": "z-ai/glm-5.3-flash",
+  "tokensIn": 74785,
+  "tokensOut": 13371,
+  "costUsd": 0.0119951775,
+  "ms": 109444,
+  "recordedAt": "2026-11-21T07:35:29.947Z"
+}

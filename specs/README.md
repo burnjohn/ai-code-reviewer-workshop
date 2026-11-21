@@ -1,6 +1,6 @@
 # Specs
 
-Each step has one spec: goal, files, what to write, acceptance criteria with a check command, a prompt for your coding agent, and how to start or recover.
+Each step has one spec: the goal, what to build part by part, constraints, acceptance criteria with a check command, a short prompt for your coding agent, and how to start or recover. The spec is the whole instruction: the prompt only points the agent at it.
 
 | Step | Spec | Start from | Checkpoint (solution) |
 |---|---|---|---|

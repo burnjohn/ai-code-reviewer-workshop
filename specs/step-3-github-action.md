@@ -3,14 +3,25 @@
 **Goal.** Pass or fail is decided by code, and the reviewer runs on every PR in your QuickBlog fork with inline comments and a red or green check.
 **Why.** A model can say "approve" while listing a CRITICAL finding. And the workflow that holds your secrets must be safe against code from a pull request.
 
-## Files
-- `src/gate.ts`
-- `examples/quick-blog-workflow.yml`
+## What to build
 
-## What to write
-- `countBlockers(findings, failOn)`: count findings with `RANK[severity] >= MIN_RANK[failOn]` (tables are in the file). Never read `verdict`. `critical` → CRITICAL; `warning` → +WARNING; `any` → all; `never` → 0.
-- Workflow, three TODOs: top-level `permissions:` with `contents: read` and `pull-requests: write`; fork guard `if: github.event.pull_request.head.repo.full_name == github.repository` on the job; `persist-credentials: false` on both checkouts.
-- Keep: trigger `pull_request` (never `pull_request_target`), and no PR text inside `${{ }}` in `run:`.
+### 1. The gate · `src/gate.ts`
+- `countBlockers(findings, failOn)` returns how many findings have `RANK[f.severity] >= MIN_RANK[failOn]`. Both tables are in the file.
+- `critical` → only CRITICAL; `warning` → CRITICAL and WARNING; `any` → all; `never` → 0.
+- Never read the model's `verdict`.
+- Remove the `void` / `return 0` placeholder and its TODO.
+
+### 2. The workflow · `examples/quick-blog-workflow.yml`
+Replace the three TODO comments.
+- A top-level `permissions:` block with `contents: read` and `pull-requests: write`.
+- A fork guard on the review job: `if: github.event.pull_request.head.repo.full_name == github.repository`.
+- `persist-credentials: false` in the `with:` of both `actions/checkout` steps (one TODO covers both).
+
+Keep what is already right: the trigger is `on: pull_request` (never `pull_request_target`), and no PR text goes inside `${{ }}` in a `run:` line.
+
+## Constraints
+- Do not change tests or any other file.
+- Do not push, commit or touch any remote. You push the workflow yourself.
 
 ## Acceptance
 1. WHEN `failOn` is `critical`, the reviewer SHALL count only CRITICAL; for `warning` and `any` it SHALL count lower severities too; for `never`, zero.
@@ -30,18 +41,12 @@
 
 ## Prompt
 ```text
-Step 3 · Gate + GitHub Action. Spec: specs/step-3-github-action.md (read it first).
-Implement in src/gate.ts and examples/quick-blog-workflow.yml:
-1. gate.ts: countBlockers(findings, failOn) returns how many findings have RANK[f.severity] >= MIN_RANK[failOn]
-   (both tables exist). Do not look at the model's verdict. Remove the void/return 0 placeholder and its TODO.
-2. quick-blog-workflow.yml, replace the three TODO comments (permissions, fork guard, and one persist-credentials TODO that covers both checkouts): (a) a top-level block
-   `permissions:` with `contents: read` and `pull-requests: write`; (b) on the review job
-   `if: github.event.pull_request.head.repo.full_name == github.repository`; (c) `persist-credentials: false` in the `with:`
-   of BOTH actions/checkout steps.
-   Keep `on: pull_request` (never pull_request_target) and keep PR text out of `run:` lines.
-Constraints: do not change tests or any other file. Do not push, commit or touch any remote.
-Verify: run `npm test -- gate workflow` until 9 passed. Then explain in two lines why the workflow uses pull_request and
-not pull_request_target, and show me the final workflow file.
+Implement Step 3.
+Read specs/step-3-github-action.md and follow it exactly.
+Do not change tests or any other file.
+Do not push, commit or touch any remote.
+Verify: run `npm test -- gate workflow` until 9 passed.
+Then show me the final workflow file.
 ```
 
 ## Start from

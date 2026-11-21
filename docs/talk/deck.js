@@ -6,9 +6,12 @@
   const QA=q.has('shot'); if(QA) document.body.classList.add('qa');
   const ls=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
   const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
+  // phones/tablets: iOS kills the tab when blur panels + 3D layers + WebGL exceed its memory budget,
+  // so they start in lite mode (stored choice still wins) and skip the all-slides warm-up paint
+  const PHONE=/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&matchMedia('(pointer:coarse)').matches);
   /* motion: '3d' (tilt follows the cursor), 'flat' (straight, animations kept), 'lite' (no effects).
      Settings panel, key M, ?lite / ?flat / ?3d; remembered per browser */
-  let motion=q.has('lite')?'lite':q.has('flat')?'flat':q.has('3d')?'3d':(ls('deck-motion')||(ls('deck-lite')==='1'?'lite':'flat'));
+  let motion=q.has('lite')?'lite':q.has('flat')?'flat':q.has('3d')?'3d':(ls('deck-motion')||(ls('deck-lite')==='1'||PHONE?'lite':'flat'));
   let lite=motion==='lite';
   document.body.classList.toggle('lite',lite); document.body.classList.toggle('flat',motion==='flat');
   const maxS=s=>+(s.dataset.steps||0);
@@ -147,7 +150,7 @@
     slides[i].querySelectorAll('.panel').forEach(p=>{ p.style.setProperty('--px',(sx-p.offsetLeft)+'px'); p.style.setProperty('--py',(sy-p.offsetTop)+'px'); });
   });
   let mouseActive=false; document.addEventListener('pointerleave',()=>mouseActive=false);
-  window.DECK={get light(){return light;},get motion(){return motion;},get reveal(){return reveal;},get mouseActive(){return mouseActive;},mouse:m,stage,slides,get i(){return i;},QA,get lite(){return lite;},get started(){return started;}};
+  window.DECK={PHONE,get light(){return light;},get motion(){return motion;},get reveal(){return reveal;},get mouseActive(){return mouseActive;},mouse:m,stage,slides,get i(){return i;},QA,get lite(){return lite;},get started(){return started;}};
   window.DECK.go=n=>{ i=Math.max(0,Math.min(total-1,n)); step=0; render(); };
   let looping=false;
   function loop(){ m.x+=(m.tx-m.x)*.07; m.y+=(m.ty-m.y)*.07;
@@ -206,7 +209,8 @@
   else{
     document.body.classList.add('booting');
     const fonts=Promise.race([document.fonts?document.fonts.ready:Promise.resolve(),new Promise(r=>setTimeout(r,1500))]);
-    fonts.then(()=>{ slides.forEach(s=>s.classList.add('warm'));
+    if(PHONE) fonts.then(()=>requestAnimationFrame(start));
+    else fonts.then(()=>{ slides.forEach(s=>s.classList.add('warm'));
       requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ slides.forEach(s=>s.classList.remove('warm')); requestAnimationFrame(start); }))); });
   }
 })();

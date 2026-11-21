@@ -5,11 +5,11 @@
   const D=window.DECK, canvas=document.getElementById('gl');
   if(THREE.ColorManagement) THREE.ColorManagement.legacyMode=false; // hex colors are sRGB: convert to linear
   let renderer;
-  try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:!!(window.DECK&&window.DECK.QA)}); }
+  try{ renderer=new THREE.WebGLRenderer({canvas,antialias:!(D&&D.PHONE),powerPreference:D&&D.PHONE?'low-power':'high-performance',preserveDrawingBuffer:!!(window.DECK&&window.DECK.QA)}); }
   catch(e){ document.body.classList.add('nogl'); canvas.remove(); return; }
   // resolution is picked once from a pixel budget (~4.2 MP) and never changed while presenting:
   // switching it mid-animation is a visible jump. A 1080p projector gets 1.5x, a 5K monitor gets ~1x.
-  const pickDpr=()=>Math.max(.75,Math.min(devicePixelRatio,1.5,Math.sqrt(4.2e6/(innerWidth*innerHeight))));
+  const pickDpr=()=>D&&D.PHONE?1:Math.max(.75,Math.min(devicePixelRatio,1.5,Math.sqrt(4.2e6/(innerWidth*innerHeight))));
   let dpr=pickDpr(); renderer.setPixelRatio(dpr);
   renderer.outputEncoding=THREE.sRGBEncoding;
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=.95;

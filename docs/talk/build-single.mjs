@@ -1,5 +1,5 @@
 // Builds talk.single.html from index.html: inlines stylesheets, fonts, images and scripts
-// so the deck runs offline from one file.  Usage: node build-single.mjs
+// so the deck runs offline from one file. Also writes talk.artifact.html (videos stay in media/).  Usage: node build-single.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,9 +18,14 @@ html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, href) => {
 });
 // <img src="img/..."> → data URIs
 html = html.replace(/(<img[^>]*\ssrc=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
-html = html.replace(/(<video[^>]*\ssrc=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
+// videos: the offline file inlines them; the artifact build keeps them as separate files (media/…)
+// published next to the page, so a phone never has to hold ~10 MB of base64 in memory
+const inlineVideos = (h) => h.replace(/(<video[^>]*\sdata-src=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
 // <script src> → inline
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) => `<script>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
 
-writeFileSync(join(dir, 'talk.single.html'), html);
-console.log(`talk.single.html: ${(html.length / 1024).toFixed(0)} KB`);
+const single = inlineVideos(html);
+writeFileSync(join(dir, 'talk.single.html'), single);
+console.log(`talk.single.html: ${(single.length / 1024).toFixed(0)} KB`);
+writeFileSync(join(dir, 'talk.artifact.html'), html);
+console.log(`talk.artifact.html: ${(html.length / 1024).toFixed(0)} KB  (+ media/*.mp4 published as separate files)`);

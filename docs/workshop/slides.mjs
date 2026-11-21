@@ -121,7 +121,7 @@ slides.push(`
       <div class="abs z2" style="left:118px;top:290px;width:1100px">
         <p class="kicker" style="--c:var(--yellow-h)">Workshop · DevFest Warsaw 2026 · Classroom</p>
         <h1 class="title long" style="font-size:88px">Build your own<br><span class="shine">AI code reviewer</span></h1>
-        <div class="author"><b>Ivan Lapa</b>AI Consultant &amp; Practitioner<br>Senior Engineer (UI), Netflix</div>
+        <div class="author"><b>Ivan Lapa</b>Senior Engineer (UI), Netflix<br>Independent AI Consultant</div>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
@@ -133,10 +133,28 @@ slides.push(slide({
   body: `<div class="abs z1" style="left:${HX}px;top:120px;width:1150px">
         <p class="kicker" style="--c:var(--red-h)">Before we start</p>
         <h2 class="h">Disclaimer</h2>
-        <p class="body" style="font-size:38px;max-width:30ch;margin-top:40px">DevDigest is a personal open-source tool built for educational purposes, not affiliated with Netflix.</p>
-        <p class="body" style="font-size:38px;max-width:30ch;margin-top:30px;color:var(--tx2)">All views in this workshop are my own and do not represent Netflix.</p>
+        <p class="body" style="font-size:32px;max-width:44ch;margin-top:32px">DevDigest is a personal open-source tool built for educational purposes, not affiliated with Netflix.</p>
+        <p class="body" style="font-size:32px;max-width:44ch;margin-top:20px;color:var(--tx2)">All views in this workshop are my own and do not represent Netflix.</p>
+        <p class="body" style="font-size:23px;max-width:84ch;margin-top:34px;color:var(--tx2)">Results for CodeRabbit, Greptile, Claude, Codex and other tools come from my own runs on a demo PR. They are subjective and may not reflect how these tools work for you.</p>
+        <p class="body" style="font-size:23px;max-width:84ch;margin-top:12px;color:var(--tx2)">Prices are public list prices as of November 2026. Your plan, discounts or contract terms may differ.</p>
       </div>`,
   note: notes('Дисклеймер без змін із доповіді: інструмент особистий, відкритий, освітній; погляди мої.', 'This is a personal open-source project, built for education. Views are my own.'),
+}));
+
+slides.push(slide({
+  tint: 'mix', block: 'Opening', time: '0:00–0:03', toc: 'About me',
+  body: `<div class="abs z2" style="left:${X}px;top:132px"><img class="me-photo" src="img/ivan.jpg" alt="Ivan Lapa"></div>
+      <div class="abs z1" style="left:620px;top:82px;width:860px">
+        <p class="kicker" style="--c:var(--yellow-h)">About me</p>
+        <h2 class="h" style="margin:0">Ivan Lapa</h2>
+        <div class="me-rows">
+          <div class="me-row" style="--c:var(--blue-h)"><span>Now</span><p>Senior Engineer (UI) at Netflix<br>Independent AI consultant</p></div>
+          <div class="me-row" style="--c:var(--green-h)"><span>Before</span><p>Engineer and team lead at unicorn companies DataRobot, Gelato</p></div>
+          <div class="me-row" style="--c:var(--yellow-h)"><span>AI</span><p>Developing AI tools since 2019: data preparation and feature discovery<br>Using AI engineering tools daily since early 2024<br>5+ AI products in daily use at printing companies, 2 autonomous agents</p></div>
+          <div class="me-row" style="--c:var(--red-h)"><span>Off work</span><p>Ironman full-distance finisher<br>Enduro, rally, ultra-distance cycling</p></div>
+        </div>
+      </div>`,
+  note: notes('Про мене, 20–30 секунд. Netflix лише як місце роботи, без його процесів і команд. Консалтинг і всі приклади тут з особистих проєктів.', 'I am Ivan: a UI engineer at Netflix and an independent AI consultant. Everything you will see today comes from my personal open-source projects.'),
 }));
 
 slides.push(slide({
@@ -398,4 +416,19 @@ slides.push(slide({
       <div class="abs z2" style="left:1190px;top:310px;width:300px;text-align:center"><div class="qrwrap"><div class="qr" data-url="{{REPO_URL}}" role="img" aria-label="QR code: workshop repository"></div></div>
         <p class="src" style="margin-top:16px">Workshop repo</p></div>`,
   note: notes('Завершення: репозиторій і QuickBlog з кнопками Copy, QR на репо воркшопу. Питання.', 'Thank you. The repo and the target PR are yours to keep.'),
+}));
+slides.push(slide({
+  tint: 'mix', block: '5 · Show + wrap', time: '0:39–0:45', toc: 'Contacts', foot: false,
+  body: `<div class="abs z1" style="left:${HX}px;top:110px;width:1300px">
+        <p class="kicker" style="--c:var(--yellow-h)">Thank you</p>
+        <h2 class="h" style="margin:0">Let's stay <span class="shine">in touch</span></h2>
+      </div>
+      <div class="abs z2 qrcard" style="left:150px;top:260px;width:320px;--c:var(--blue-h)"><div class="qrwrap"><div class="qr" data-url="https://www.linkedin.com/in/ai-consult/" role="img" aria-label="QR code: LinkedIn"></div></div>
+        <span class="lbl">LinkedIn</span><b>Ivan Lapa</b><small>linkedin.com/in/ai-consult</small></div>
+      <div class="abs z2 qrcard" style="left:520px;top:260px;width:320px;--c:var(--red-h)"><div class="qrwrap"><div class="qr" data-url="https://www.instagram.com/burning_johnny/" role="img" aria-label="QR code: Instagram"></div></div>
+        <span class="lbl">Instagram</span><b>@burning_johnny</b><small>instagram.com/burning_johnny</small></div>
+      <div class="abs qrsep z1" style="left:920px;top:270px;height:380px"></div>
+      <div class="abs z2 qrcard" style="left:1000px;top:260px;width:400px;--c:var(--green-h)"><div class="qrwrap"><div class="qr" data-url="{{REPO_URL}}" role="img" aria-label="QR code: workshop repository"></div></div>
+        <span class="lbl">Code</span><b>Workshop repo</b><small>github.com/burnjohn/<br>ai-code-reviewer-workshop</small></div>`,
+  note: notes('Контакти: LinkedIn, Instagram і репозиторій воркшопу. Лишаю на екрані, поки відповідаю на питання.', 'If you want to keep in touch: LinkedIn, Instagram, and the repo is yours to keep.'),
 }));

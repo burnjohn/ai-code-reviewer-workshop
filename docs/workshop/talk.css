@@ -390,6 +390,19 @@ p.colcap{margin:0}
 .dwhy b{color:var(--c);font-weight:500}
 .dwhy code,.dcard code{font:400 .9em var(--mono)}
 
+/* about me + contacts */
+.me-photo{display:block;width:400px;height:600px;object-fit:cover;object-position:50% 58%;border-radius:28px;border:1px solid rgba(255,255,255,.16);box-shadow:0 50px 90px -40px rgba(0,0,0,.9)}
+.me-rows{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.me-row{border-radius:20px;padding:12px 24px 14px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.035)}
+.me-row span{display:block;font:400 16px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--blue-h));margin-bottom:8px}
+.me-row p{margin:0;font:400 22px/1.3 var(--font);color:#e3e6eb}
+.me-row p b{color:#fff;font-weight:600}
+.qrcard{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.qrcard .lbl{font:400 17px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--blue-h));margin-top:10px}
+.qrcard b{font:500 26px/1.2 var(--font);color:var(--tx)}
+.qrcard small{font:300 17px/1.3 var(--mono);color:var(--tx2)}
+.qrsep{position:absolute;width:1.5px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.22),transparent)}
+
 /* Talk / Workshop switcher (GitHub Pages: /talk/ and /workshop/) */
 #decksw{position:fixed;left:18px;top:16px;z-index:8;display:flex;gap:2px;padding:3px;background:rgba(20,22,30,.82);border:1px solid rgba(255,255,255,.16);border-radius:999px;opacity:.35;transition:opacity .3s}
 #decksw:hover,#decksw:focus-within{opacity:1}

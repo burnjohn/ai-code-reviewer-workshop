@@ -77,7 +77,7 @@
       notes:['Missed the XSS — the most dangerous defect in the PR — while spending the most reasoning tokens of the three.',
         'Tier 3 shrinks with model size: Sol 5 → Terra 3 → Luna 2.'],
       price:'Estimate: 592k cache read + 97k cache write + 15.6k output × list price ($0.10 / $0.50 per 1M). Not a billed amount.'},
-    ddgen:{name:'DevDigest · General',model:'DeepSeek V4 Flash · via OpenRouter',kind:'my reviewer · task: “find bugs in this PR”',
+    ddgen:{name:'DevDigest · General reviewer',prompt:'https://github.com/burnjohn/quick-blog/blob/18ca3fe/.devdigest/agents/general-reviewer-9833590c.yaml',model:'DeepSeek V4 Flash · via OpenRouter',kind:'my reviewer · task: “find bugs in this PR”',
       runs:['1 run'],hit:[['T1-1','T1-2','T1-3','T1-4','T1-5','T2-2','T2-3','T2-4','T2-6','T2-7','T2-8','T2-9','T2-10','T2-11','T3-1','T3-2','T3-6','T3-7']],
       traps:{A1:[1,'quoted the note and didn’t buy it'],A2:[0,'not refuted'],D1:[1,'no false positive']},
       facts:[['Found','18 / 28','1 run'],['Price / run','$0.020','billed by OpenRouter'],['Tokens','79k / 44k','in / out'],['Time','2.4 min','']],
@@ -87,7 +87,7 @@
         'Missed the admin role check, the last-day bug, author views, scope, tests, empty state.',
         'On the bigger DeepSeek V4 Pro the same agent found only 12 — for $1.19 locally, $0.07 in CI.'],
       price:'Exact: OpenRouter usage for the run ($0.044 / $0.132 per 1M in / out).'},
-    ddspec:{name:'DevDigest · Spec',model:'DeepSeek V4 Flash · via OpenRouter',kind:'my reviewer · task: “check every acceptance criterion” · spec given as a skill',
+    ddspec:{name:'DevDigest · Spec Conformance reviewer',prompt:'https://github.com/burnjohn/quick-blog/blob/18ca3fe/.devdigest/agents/spec-conformance-reviewer-4336cb79.yaml',model:'DeepSeek V4 Flash · via OpenRouter',kind:'my reviewer · task: “check every acceptance criterion” · spec given as a skill',
       runs:['1 run'],hit:[except('T2-10','T3-4')],
       traps:{A1:[1,'called the “keys are safe” claim false'],A2:[1,'“False claim: PR says ‘Covers: all acceptance criteria’…”'],D1:[1,'no false positive']},
       facts:[['Found','26 / 28','same on V4 Pro, #43 and #44'],['Price / run','$0.012','billed by OpenRouter'],['Tokens','81k / 18k','in / out'],['Time','84 s','grounding 29 / 29']],
@@ -126,7 +126,7 @@
       return `<div class="rv-tier"><em>${TIER[t]} — ${n} / ${ds.length}</em><div class="rv-chips">${ds.map(d=>
         both.has(d[0])?chip(d,'hit','found'+(two?' in both runs':'')):all.has(d[0])?chip(d,'one','found in one run only'):half.has(d[0])?chip(d,'half','partly — touched the line, missed the point'):chip(d,'miss','missed')).join('')}</div></div>`; }).join('');
     const traps=Object.entries(r.traps).map(([k,[ok,t]])=>`<div class="rv-trap"><span class="rv-ic">${ok?'✅':'❌'}</span><span><b>${TRAP[k][0]}</b> — ${TRAP[k][1]}<br><span style="color:var(--tx2)">${t}</span></span></div>`).join('');
-    body.innerHTML=`<p class="rv-kick">${r.kind}</p><h3>${r.name}<small>${r.model}</small></h3><p class="rv-sub">${r.runs.join(' + ')} · ${r.out}${r.time?' · '+r.time:''}</p>
+    body.innerHTML=`<p class="rv-kick">${r.kind}</p><h3>${r.name}<small>${r.model}</small></h3><p class="rv-sub">${r.runs.join(' + ')} · ${r.out}${r.time?' · '+r.time:''}${r.prompt?` · <a href="${r.prompt}" target="_blank" rel="noopener">open the agent prompt ↗</a>`:''}</p>
       <div class="rv-facts">${r.facts.map(f=>`<div class="rv-fact"><i>${f[0]}</i><b>${f[1]}</b>${f[2]?`<span>${f[2]}</span>`:''}</div>`).join('')}</div>
       <div class="rv-cols"><div><h4>Planted defects</h4><div class="rv-legend"><span style="--c:#5cdb6d">found${two?' both runs':''}</span>${two?'<span style="--c:#ffd427">one run only</span>':''}<span style="--c:#c9b56a">partly</span><span style="--c:#ff7daf">missed</span></div>${tiers}</div>
       <div><h4>Traps</h4><div class="rv-traps">${traps}</div><h4>Worth knowing</h4><div class="rv-notes">${r.notes.map(n=>`<p>${n}</p>`).join('')}</div></div></div>

@@ -567,13 +567,15 @@ body.light #dfx .dcode .dl.dx{background:rgba(26,95,208,.10);box-shadow:inset 3p
 #rvm .rv-notes q{color:var(--yellow-h);font-style:italic}
 #rvm .rv-note{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:14px;color:var(--tx3)}
 #rvm .rv-note a{color:var(--tx2)}
+#rvm .rv-sub a{color:var(--blue-h);text-underline-offset:3px}
+a.rv-how{text-decoration:underline}
 #rvm table.cav{width:100%;border-collapse:collapse;font-size:16px}
 #rvm table.cav td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
 #rvm table.cav td:first-child{font-weight:600;white-space:nowrap;width:180px}
 #rvm table.cav td:last-child{color:var(--tx2)}
 
 /* ---------- slide 34: our measured cost per review ---------- */
-.dp.cost .rw{grid-template-columns:300px 1fr 150px;height:48px}
+.dp.cost .rw{grid-template-columns:300px 1fr 150px;height:46px}
 .dp.cost .axis{grid-template-columns:300px 1fr 150px;height:36px}
 .dp.cost .lb{font-size:20px;line-height:1.15;white-space:nowrap}
 .dp.cost .lb small{display:block;font:400 13px var(--mono);color:var(--blue-h);opacity:.85;margin-top:2px}
@@ -593,20 +595,70 @@ body.light #dfx .dcode .dl.dx{background:rgba(26,95,208,.10);box-shadow:inset 3p
 .dlist.traps3 .rid{font-size:24px}
 
 /* ---------- tier slides: fill the panel height instead of bunching at the top ---------- */
-.dlist.fill{height:530px}
-.dlist.fill:not(.two) .drow{flex:1;align-content:center;padding:12px 24px}
+.dlist.fill{height:455px} /* z2 layer renders ~5.6% larger: 216+455 lands at ~686, above the logo notch (703) */
+.dlist.fill:not(.two){gap:9px}
+.dlist.fill:not(.two) .drow{flex:1;align-content:center;padding:8px 24px}
 .dlist.fill:not(.two) .drow b{font-size:26px}
-.dlist.fill:not(.two) .drow p{font-size:20px;margin-top:6px}
+.dlist.fill:not(.two) .drow p{font-size:19px;margin-top:5px}
+.dlist.fill:not(.two) .drow code{font-size:16px}
 .dlist.fill:not(.two) .rid{font-size:21px}
 .dlist.two.fill{grid-auto-rows:1fr;gap:16px}
-.dlist.two.fill .drow{align-content:center;padding:14px 22px}
+.dlist.two.fill .drow{align-content:center;padding:10px 22px}
 .dlist.two.fill .drow b{font-size:24px}
 .dlist.two.fill .drow p{font-size:18.5px;margin-top:6px}
 .dlist.two.fill .rid{font-size:20px}
+.dlist.two.fill .drow{grid-template-columns:74px 1fr}
 
 /* ---------- Export to CI: use the full panel height ---------- */
 .ci-steps .box{flex:1;display:flex;align-items:center;gap:12px;font-size:24px}
 .ci-paths .box{font-size:21px;line-height:1.45;padding:18px 22px}
+
+/* ---------- light theme polish ----------
+   The light theme inverts #stage (deck.css), so values here are written in "dark space":
+   each one is the color that turns into the wanted light color after invert(1) hue-rotate(180deg).
+   Targets: blue #1d7ee1, green #188038, amber #c26400, red #e35537, text-2 #3c4043, text-3 #5f6368,
+   panels ~white. Videos are inverted back, like photos. */
+body.light{--blue-h:#3b9cff;--green-h:#4eb66e;--yellow-h:#e38509;--red-h:#ff7253;--tx2:#bcc0c4;--tx3:#999da2}
+/* videos stay exactly as recorded: a counter-inversion can't bring their colors back (yellow comes out peach),
+   so on slides with a video the inversion goes on every layer except the video frame, instead of on #stage */
+body.light #stage{filter:none}
+body.light .slide:not(:has(video)),
+body.light .slide:has(video) .tilt>:not(.vid),
+body.light .win.vid>.bar{filter:invert(1) hue-rotate(180deg)}
+body.light .slide:has(video) .panel{-webkit-backdrop-filter:none;backdrop-filter:none} /* filtered on its own, the blur would pick up the sky and turn gray */
+body.light .win.vid{border-color:rgba(0,0,0,.12);background:#000;box-shadow:0 30px 70px -36px rgba(20,30,60,.45)}
+/* panels: near-white and opaque enough that the sky particles stay behind them */
+body.light .panel{background:linear-gradient(155deg,rgba(0,0,0,.94) 0%,rgba(0,0,0,.9) 60%,rgba(0,0,0,.93) 100%)}
+body.light .panel::after{background:radial-gradient(700px circle at var(--px,-999px) var(--py,-999px),rgba(255,255,255,.025),transparent 60%)}
+body.light .panel.ghost{background:rgba(0,0,0,.5)}
+body.light svg.edge .base{stroke:rgba(255,255,255,.11)}
+/* boxes: light tint, colored border, soft colored shadow instead of the dark glow */
+body.light .box{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 11%,transparent),rgba(0,0,0,.4));
+  border-color:color-mix(in srgb,var(--c) 55%,transparent);
+  box-shadow:0 16px 36px -24px color-mix(in srgb,var(--c) 80%,transparent)}
+body.light .box.solid{background:var(--c);border-color:transparent;box-shadow:0 14px 34px -16px var(--c)}
+body.light .tile{border-color:rgba(255,255,255,.2);background:rgba(0,0,0,.35)}
+/* text: a step darker everywhere */
+body.light .body,body.light .box li,body.light .statcap{color:#e6e8ec}
+body.light .kicker{color:var(--tx2)}
+body.light .lead,body.light .src,body.light .note{color:var(--tx2)}
+body.light .foot{color:var(--tx3)} body.light .foot b{color:var(--tx2)}
+/* the yellow marker: a clean yellow can't survive the inversion, so it becomes a soft amber marker with dark text */
+body.light .hl{color:#dddee1}
+body.light .hl::before{background:#542800;box-shadow:none}
+
+/* about me + contacts */
+.me-photo{display:block;width:400px;height:600px;object-fit:cover;object-position:50% 58%;border-radius:28px;border:1px solid rgba(255,255,255,.16);box-shadow:0 50px 90px -40px rgba(0,0,0,.9)}
+.me-rows{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.me-row{border-radius:20px;padding:12px 24px 14px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.035)}
+.me-row span{display:block;font:400 16px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--blue-h));margin-bottom:8px}
+.me-row p{margin:0;font:400 22px/1.3 var(--font);color:#e3e6eb}
+.me-row p b{color:#fff;font-weight:600}
+.qrcard{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.qrcard .lbl{font:400 17px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c,var(--blue-h));margin-top:10px}
+.qrcard b{font:500 26px/1.2 var(--font);color:var(--tx)}
+.qrcard small{font:300 17px/1.3 var(--mono);color:var(--tx2)}
+.qrsep{position:absolute;width:1.5px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.22),transparent)}
 
 /* Talk / Workshop switcher (GitHub Pages: /talk/ and /workshop/) */
 #decksw{position:fixed;left:18px;top:16px;z-index:8;display:flex;gap:2px;padding:3px;background:rgba(20,22,30,.82);border:1px solid rgba(255,255,255,.16);border-radius:999px;opacity:.35;transition:opacity .3s}

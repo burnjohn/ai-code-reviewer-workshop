@@ -11,7 +11,7 @@
   const PHONE=/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&matchMedia('(pointer:coarse)').matches);
   /* motion: '3d' (tilt follows the cursor), 'flat' (straight, animations kept), 'lite' (no effects).
      Settings panel, key M, ?lite / ?flat / ?3d; remembered per browser */
-  let motion=q.has('lite')?'lite':q.has('flat')?'flat':q.has('3d')?'3d':(ls('deck-motion')||(ls('deck-lite')==='1'||PHONE?'lite':'flat'));
+  let motion=q.has('lite')?'lite':q.has('flat')?'flat':q.has('3d')?'3d':(ls('deck-motion')||(ls('deck-lite')==='1'||PHONE?'lite':'3d'));
   let lite=motion==='lite';
   document.body.classList.toggle('lite',lite); document.body.classList.toggle('flat',motion==='flat');
   const maxS=s=>+(s.dataset.steps||0);
@@ -87,7 +87,7 @@
      'off'   everything is there at once
      Settings panel, key A, ?reveal=auto|click|off; remembered. data-build="off" on a slide opts out,
      data-b="N" on a block sets its click step by hand. */
-  let reveal=q.get('reveal')||(q.has('builds')?'click':null)||ls('deck-reveal')||'auto';
+  let reveal=q.get('reveal')||(q.has('builds')?'click':null)||ls('deck-reveal')||'off';
   const SKIP='.panel,svg.edge,.gdgtext,.badge,.foot';
   const isHead=e=>e.matches('.num')||!!e.querySelector(':scope>.kicker,:scope>.h,:scope>.h1,:scope>.title');
   stage.querySelectorAll('[data-b]').forEach(e=>e.dataset.bHand=e.dataset.b);

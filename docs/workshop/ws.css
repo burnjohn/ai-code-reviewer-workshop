@@ -264,3 +264,4 @@ body.qa #notesp{display:none}
 .mn.lit{border-color:var(--green-h);background:color-mix(in srgb,var(--green-h) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--green-h) 28%,transparent)}
 .mn.ai.lit{background:#fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--green-h) 55%,transparent)}
 .map.has-lit .mn:not(.lit),.map.has-lit .br:not(.lit){opacity:.4}
+.cmd.url code a,.tl small a{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(138,180,248,.5)}

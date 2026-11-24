@@ -34,9 +34,13 @@
         <h1 class="title long" style="font-size:88px">Build your own<br><span class="shine">AI code reviewer</span></h1>
         <div class="author"><b>Ivan Lapa</b>Senior Engineer (UI), Netflix<br>Independent AI Consultant</div>
       </div>
+      <div class="abs z2" style="left:1170px;top:268px;width:300px;text-align:center">
+        <a href="https://claude.ai/artifact/6S1RA3TkVU7Gfozc42rvj6#no_universal_links" target="_blank" rel="noopener" style="display:block;background:#fff;border-radius:22px;padding:14px;line-height:0"><img src="img/deck-qr.svg" alt="QR code: these slides" width="272" height="272" style="display:block;width:272px;height:272px"></a>
+        <p style="margin:14px 0 0;font:500 22px/1.3 var(--font);color:#fff">Slides: scan to follow along</p>
+      </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
-    <template class="notes"><p class="ua">Привітання. 45 хвилин, ~40 людей, у кожного ноутбук. Кажу одразу: ми будуємо, а не слухаємо. Усе, що треба скопіювати, є на слайдах з кнопкою Copy. Натисніть P, щоб бачити ці нотатки.</p><p class="say"><b>Say:</b> Welcome. In 45 minutes you will build an AI code reviewer that comments on a real pull request. Everything you need to copy has a Copy button.</p></template>
+    <template class="notes"><p class="ua">Привітання. 45 хвилин, ~40 людей, у кожного ноутбук. Кажу одразу: ми будуємо, а не слухаємо. Усе, що треба скопіювати, є на слайдах з кнопкою Copy. Натисніть P, щоб бачити ці нотатки. QR справа відкриває ці слайди (Claude artifact): дайте відсканувати, щоб кожен мав кнопки Copy у себе.</p><p class="say"><b>Say:</b> Welcome. In 45 minutes you will build an AI code reviewer that comments on a real pull request. Everything you need to copy has a Copy button.</p></template>
   </section>
 
   <section class="slide" data-logo="dock" data-tint="blue" data-block="Opening" data-time="0:00–0:03" data-toc="Disclaimer">
@@ -125,7 +129,7 @@ Suggestion: how to fix it.</pre></div>
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
 <div class="abs z1" style="left:120px;top:108px;width:1350px;--c:var(--green-h)"><p class="kicker">The app · QuickBlog</p><h2 class="h" style="margin:0;font-size:54px">A small blog platform. <em>This is what we review.</em></h2></div>
-      <div class="abs z2 " style="left:141px;top:262px;width:800px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">QuickBlog · write, publish, comment, moderate</span></div><video src="media/quick-demo-loop.mp4" autoplay loop muted playsinline preload="auto" aria-label="QuickBlog · write, publish, comment, moderate"></video></div></div>
+      <div class="abs z2 " style="left:141px;top:262px;width:800px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">QuickBlog · write, publish, comment, moderate</span></div><video data-src="media/quick-demo-loop.mp4" autoplay loop muted playsinline preload="none" aria-label="QuickBlog · write, publish, comment, moderate"></video></div></div>
       <div class="abs z2 " style="left:981px;top:262px;width:478px;"><div class="stack">
         <div class="card" style=""><p class="lbl2">Site</p><h3>Stories, search, comments</h3></div>
         <div class="card" style=""><p class="lbl2">Admin</p><h3>Write, publish, moderate</h3></div>
@@ -141,7 +145,7 @@ Suggestion: how to fix it.</pre></div>
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
 <div class="abs z1" style="left:120px;top:108px;width:1350px;--c:var(--green-h)"><p class="kicker">The target · QuickBlog · a public demo PR</p><h2 class="h" style="margin:0;font-size:54px">We are going to review <em>this pull request</em></h2></div>
-      <div class="abs z2 " style="left:141px;top:236px;width:860px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">QuickBlog · analytics</span></div><video src="media/analytics-demo-loop.mp4" autoplay loop muted playsinline preload="auto" aria-label="QuickBlog · analytics"></video></div></div>
+      <div class="abs z2 " style="left:141px;top:236px;width:860px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">QuickBlog · analytics</span></div><video data-src="media/analytics-demo-loop.mp4" autoplay loop muted playsinline preload="none" aria-label="QuickBlog · analytics"></video></div></div>
       <div class="abs z2 " style="left:1051px;top:228px;width:408px;"><div class="stat" style="--c:var(--green-h);font-size:112px">28</div>
         <p class="statcap" style="font-size:24px;margin-top:4px">planted defects <span class="tx2">+ 3 traps</span></p>
         <div class="stack" style="gap:10px;margin-top:18px">
@@ -170,6 +174,24 @@ Suggestion: how to fix it.</pre></div>
     <template class="notes"><p class="ua">Гілки — це контрольні точки. main — старт; step-N-* — готове рішення кроку N; final — повна функціональність; stretch/mcp — MCP-інструмент. Старт кроку N дорівнює готовому кроку N-1. Якщо відстали — git stash && git checkout потрібної гілки (точна команда є в Lost? на слайді кроку).</p><p class="say"><b>Say:</b> Every step has a solution branch. If you fall behind, stash and check out the branch of the step you missed.</p></template>
   </section>
 
+  <section class="slide" data-logo="dock" data-tint="blue" data-block="Setup" data-time="0:03" data-toc="OpenRouter key">
+    <div class="rig"><div class="tilt">
+      <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
+<div class="abs z1" style="left:120px;top:108px;width:1350px;--c:var(--green-h)"><p class="kicker">Setup · before we start</p><h2 class="h" style="margin:0;font-size:54px">Scan for the <em>OpenRouter key</em></h2></div>
+      <div class="abs z2 " style="left:141px;top:250px;width:1318px;"><div style="display:flex;gap:56px;align-items:center">
+        <a href="https://docs.google.com/document/d/19tl7IcCppnVxf0pnovKr2RiUVhAVn4IIjHlKLyPoLHQ" target="_blank" rel="noopener" style="flex:none;display:block;background:#fff;border-radius:24px;padding:18px;line-height:0"><img src="img/openrouter-key-qr.svg" alt="QR code: the OpenRouter key doc" width="420" height="420" style="display:block;width:420px;height:420px"></a>
+        <div style="flex:1;min-width:0;max-width:820px;display:flex;flex-direction:column;gap:18px">
+          <div class="card" style="--c:var(--green-h);"><p class="lbl2">1 · scan</p><h3>Open the key doc</h3><p>Phone camera → the Google Doc with the workshop key.</p></div>
+          <div class="card" style="--c:var(--green-h);"><p class="lbl2">2 · keep it</p><h3>It goes into .env next</h3><p>Paste it after <code>OPENROUTER_API_KEY=</code>. Never commit it.</p></div>
+          <p style="margin:4px 0 0 4px;font-size:21px;color:var(--tx2)">No camera? The same link is in the chat, or click the QR.</p>
+        </div>
+      </div></div>
+      <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
+      <div class="foot"><b></b><span>Setup</span></div>
+    </div></div>
+    <template class="notes"><p class="ua">Перед сетапом: показуємо QR на ключ OpenRouter (Google Doc). Даємо 20–30 секунд відсканувати. Дублюємо посилання в чат. Ключ спільний, із лімітом — у .env, не комітимо; після воркшопу ключ відкличемо.</p><p class="say"><b>Say:</b> Scan this for the OpenRouter key. The same link is in the chat. It goes into .env in a minute, never into git.</p></template>
+  </section>
+
   <section class="slide" data-logo="dock" data-tint="blue" data-block="Setup" data-time="0:03–0:07" data-toc="Initial setup">
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
@@ -177,15 +199,15 @@ Suggestion: how to fix it.</pre></div>
       <div class="abs z2 turn setup" style="left:141px;top:250px;width:1318px;">
         <div class="trow "><span class="stepn" style="--c:var(--green-h)">1</span><div class="tl"><b>Use this template</b><small>all branches · same name · Public</small></div><div class="cmd url"><code>https://github.com/burnjohn/ai-code-reviewer-workshop/generate</code></div></div>
         <div class="trow "><span class="stepn" style="--c:var(--green-h)">2</span><div class="tl"><b>Clone</b><small>or open a Codespace</small></div><div class="cmd "><span class="pf">$</span><code>git clone https://github.com/&lt;you&gt;/ai-code-reviewer-workshop &amp;&amp; cd ai-code-reviewer-workshop</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--green-h)">3</span><div class="tl"><b>Add the key</b><small>key in the chat, into .env</small></div><div class="cmd "><span class="pf">$</span><code>cp .env.example .env</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--green-h)">4</span><div class="tl"><b>Install</b></div><div class="cmd "><span class="pf">$</span><code>npm ci</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--green-h)">5</span><div class="tl"><b>Smoke test</b><small>offline, a recorded answer</small></div><div class="cmd "><span class="pf">$</span><code>npm run review:mock</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--green-h)">3</span><div class="tl"><b>Get the key</b><small>scan the QR, or click</small></div><div class="cmd url"><code style="font-size:19px"><a href="https://docs.google.com/document/d/19tl7IcCppnVxf0pnovKr2RiUVhAVn4IIjHlKLyPoLHQ" target="_blank" rel="noopener">docs.google.com/document/d/19tl7IcCppnVxf0pnovKr2RiUVhAVn4IIjHlKLyPoLHQ</a></code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--green-h)">4</span><div class="tl"><b>Add the key</b><small>paste after OPENROUTER_API_KEY=</small></div><div class="cmd "><span class="pf">$</span><code>cp .env.example .env</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--green-h)">5</span><div class="tl"><b>Install + smoke test</b><small>offline, a recorded answer</small></div><div class="cmd "><span class="pf">$</span><code>npm ci &amp;&amp; npm run review:mock</code></div></div>
         <div class="trow "><span class="stepn" style="--c:rgba(255,255,255,.55)">+</span><div class="tl"><b>Optional</b><small>prefer clicking? open the UI</small></div><div class="cmd "><span class="pf">$</span><code>npm run ui</code></div></div>
       </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
       <div class="foot"><b></b><span>Setup</span></div>
     </div></div>
-    <template class="notes"><p class="ua">Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Template: галочка Include all branches, назву ai-code-reviewer-workshop не змінюємо і лишаємо Public — CI на кроці 3 бере рев’юер саме з <you>/ai-code-reviewer-workshop (не перейменовуємо). Ключ OpenRouter — у чаті; вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.</p><p class="say"><b>Say:</b> Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.</p></template>
+    <template class="notes"><p class="ua">Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Template: галочка Include all branches, назву ai-code-reviewer-workshop не змінюємо і лишаємо Public — CI на кроці 3 бере рев’юер саме з <you>/ai-code-reviewer-workshop (не перейменовуємо). Ключ OpenRouter — у Google-документі (QR на попередньому слайді, посилання ще й у чаті); вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.</p><p class="say"><b>Say:</b> Copy each command with its button. The key is in the doc linked on the slide. If review:mock prints findings, you are ready.</p></template>
   </section>
 
   <section class="slide" data-logo="dock" data-tint="blue" data-block="1 · Findings" data-time="0:07–0:09" data-toc="Step 1 · Findings you can trust">
@@ -656,7 +678,7 @@ Then show me the final workflow file.</pre><pre class="prompt" data-t="Step 3 ·
       <div class="abs z2 turn setup" style="left:141px;top:250px;width:1318px;">
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">1</span><div class="tl"><b>Fork QuickBlog</b><small><u>untick</u> “main branch only”</small></div><div class="cmd url"><code>https://github.com/burnjohn/quick-blog</code></div></div>
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">2</span><div class="tl"><b>Enable Actions</b><small>the Actions tab of your fork</small></div><div class="cmd nocp"><code>“I understand my workflows, go ahead and enable them”</code></div></div>
-        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">3</span><div class="tl"><b>Add your key</b><small>Secrets → Actions → New secret</small></div><div class="cmd "><code>OPENROUTER_API_KEY</code></div></div>
+        <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">3</span><div class="tl"><b>Add your key</b><small>Secrets → Actions → New secret · value: the key from the QR doc (setup slide)</small></div><div class="cmd "><code>OPENROUTER_API_KEY</code></div></div>
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">4</span><div class="tl"><b>Add the workflow</b><small>fork → Add file → Create new file; paste your yml</small></div><div class="cmd "><code>.github/workflows/ai-review.yml</code></div></div>
         <div class="trow "><span class="stepn" style="--c:var(--yellow-h)">5</span><div class="tl"><b>Open the PR</b><small>analytics → main, in your fork</small></div><div class="cmd "><span class="pf">$</span><code>gh pr create -R &lt;you&gt;/quick-blog -B main -H analytics -t Analytics -b ""</code></div></div>
       </div>
@@ -664,7 +686,7 @@ Then show me the final workflow file.</pre><pre class="prompt" data-t="Step 3 ·
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
       <div class="foot"><b></b><span>3 · Gate + Action</span></div>
     </div></div>
-    <template class="notes"><p class="ua">Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде ~2–3 хв (DeepSeek, три агенти паралельно): поки чекаємо — відкриваємо вкладку Actions і дивимось, як іде job.</p><p class="say"><b>Say:</b> Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and watch the Actions tab: the red check lands in 2–3 minutes.</p></template>
+    <template class="notes"><p class="ua">Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (з документа за QR на слайді сетапу) (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде ~2–3 хв (DeepSeek, три агенти паралельно): поки чекаємо — відкриваємо вкладку Actions і дивимось, як іде job.</p><p class="say"><b>Say:</b> Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and watch the Actions tab: the red check lands in 2–3 minutes.</p></template>
   </section>
 
   <section class="slide" data-logo="dock" data-tint="red" data-block="4 · More reviewers" data-time="0:32–0:34" data-toc="Step 4 · More reviewers">
@@ -826,7 +848,7 @@ the three agents.</pre><pre class="prompt" data-t="Step 4 · stuck: the finished
           <div class="door2" style="--c:var(--blue-h);width:auto"><b>UI</b><small>npm run ui · ours, live</small></div>
         </div>
         <div class="engine" style="margin-top:16px;padding:16px"><b style="font-size:30px">review engine</b><div style="font-size:20px">one pipeline, four ways in</div></div></div>
-      <div class="abs z2 " style="left:921px;top:262px;width:538px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">npm run ui · three agents, mock run</span></div><video src="media/ui-demo-loop.mp4" autoplay loop muted playsinline preload="auto" aria-label="npm run ui · three agents, mock run"></video></div></div>
+      <div class="abs z2 " style="left:921px;top:262px;width:538px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">npm run ui · three agents, mock run</span></div><video data-src="media/ui-demo-loop.mp4" autoplay loop muted playsinline preload="none" aria-label="npm run ui · three agents, mock run"></video></div></div>
       <div class="abs z2 " style="left:141px;top:716px;width:990px;display:flex;align-items:center;gap:18px"><p class="lbl2" style="--c:var(--blue-h);margin:0;flex:none;width:106px">At home</p><div style="flex:1;min-width:0"><div class="cmd "><span class="pf">$</span><code>claude mcp add ai-reviewer -- npx tsx mcp/server.ts</code></div></div></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
       <div class="foot"><b></b><span>5 · Show + wrap</span></div>
@@ -838,7 +860,7 @@ the three agents.</pre><pre class="prompt" data-t="Step 4 · stuck: the finished
     <div class="rig"><div class="tilt">
       <div class="panel" data-shape="notch-br:403:131" style="left:62px;top:66px;width:1474px;height:768px"></div>
 <div class="abs z1" style="left:120px;top:108px;width:1350px;--c:var(--green-h)"><p class="kicker">Where it grows</p><h2 class="h" style="margin:0;font-size:54px">The same engine, <em>grown into a product</em></h2></div>
-      <div class="abs z2 " style="left:141px;top:242px;width:860px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">DevDigest studio · quick-blog PR #44 · recording</span></div><video src="media/demo-studio.mp4" autoplay loop muted playsinline preload="auto" aria-label="DevDigest studio · quick-blog PR #44 · recording"></video></div></div>
+      <div class="abs z2 " style="left:141px;top:242px;width:860px;"><div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">DevDigest studio · quick-blog PR #44 · recording</span></div><video data-src="media/demo-studio.mp4" autoplay loop muted playsinline preload="none" aria-label="DevDigest studio · quick-blog PR #44 · recording"></video></div></div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
       <div class="foot"><b></b><span>5 · Show + wrap</span></div>
     </div></div>

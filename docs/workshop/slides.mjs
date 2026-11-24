@@ -41,7 +41,7 @@ const card = (label, title, text, { c = '', ac = false, style = '' } = {}) =>
   `<div class="card${ac ? ' ac' : ''}" style="${c ? `--c:${c};` : ''}${style}"><p class="lbl2">${label}</p><h3>${title}</h3>${text ? `<p>${text}</p>` : ''}</div>`;
 /* a looping screen recording in a window frame; the file lives in media/ and is inlined by build.mjs */
 const demo = (src, title) =>
-  `<div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">${title}</span></div><video src="${src}" autoplay loop muted playsinline preload="auto" aria-label="${title}"></video></div>`;
+  `<div class="win vid"><div class="bar"><i style="background:var(--red)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span style="margin-left:10px">${title}</span></div><video data-src="${src}" autoplay loop muted playsinline preload="none" aria-label="${title}"></video></div>`;
 const row = (i, c, title, sub, bodyHtml, cls = '') =>
   `<div class="trow ${cls}"><span class="stepn" style="--c:${c}">${i}</span><div class="tl"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</div>${bodyHtml}</div>`;
 
@@ -123,9 +123,13 @@ slides.push(`
         <h1 class="title long" style="font-size:88px">Build your own<br><span class="shine">AI code reviewer</span></h1>
         <div class="author"><b>Ivan Lapa</b>Senior Engineer (UI), Netflix<br>Independent AI Consultant</div>
       </div>
+      <div class="abs z2" style="left:1170px;top:268px;width:300px;text-align:center">
+        <a href="{{DECK_URL}}" target="_blank" rel="noopener" style="display:block;background:#fff;border-radius:22px;padding:14px;line-height:0"><img src="img/deck-qr.svg" alt="QR code: these slides" width="272" height="272" style="display:block;width:272px;height:272px"></a>
+        <p style="margin:14px 0 0;font:500 22px/1.3 var(--font);color:#fff">Slides: scan to follow along</p>
+      </div>
       <div class="gdgtext z1">Google<br>Developer<br>Groups</div>
     </div></div>
-    ${notes('Привітання. 45 хвилин, ~40 людей, у кожного ноутбук. Кажу одразу: ми будуємо, а не слухаємо. Усе, що треба скопіювати, є на слайдах з кнопкою Copy. Натисніть P, щоб бачити ці нотатки.', 'Welcome. In 45 minutes you will build an AI code reviewer that comments on a real pull request. Everything you need to copy has a Copy button.')}
+    ${notes('Привітання. 45 хвилин, ~40 людей, у кожного ноутбук. Кажу одразу: ми будуємо, а не слухаємо. Усе, що треба скопіювати, є на слайдах з кнопкою Copy. Натисніть P, щоб бачити ці нотатки. QR справа відкриває ці слайди (Claude artifact): дайте відсканувати, щоб кожен мав кнопки Copy у себе.', 'Welcome. In 45 minutes you will build an AI code reviewer that comments on a real pull request. Everything you need to copy has a Copy button.')}
   </section>`);
 
 slides.push(slide({
@@ -226,17 +230,31 @@ slides.push(slide({
 }));
 
 slides.push(slide({
+  tint: 'blue', block: 'Setup', time: '0:03', toc: 'OpenRouter key',
+  body: `${head('Setup · before we start', 'Scan for the <em>OpenRouter key</em>', C.g)}
+      ${at(250, `<div style="display:flex;gap:56px;align-items:center">
+        <a href="https://{{OPENROUTER_KEY_DOC}}" target="_blank" rel="noopener" style="flex:none;display:block;background:#fff;border-radius:24px;padding:18px;line-height:0"><img src="img/openrouter-key-qr.svg" alt="QR code: the OpenRouter key doc" width="420" height="420" style="display:block;width:420px;height:420px"></a>
+        <div style="flex:1;min-width:0;max-width:820px;display:flex;flex-direction:column;gap:18px">
+          ${card('1 · scan', 'Open the key doc', 'Phone camera → the Google Doc with the workshop key.', { c: C.g })}
+          ${card('2 · keep it', 'It goes into .env next', 'Paste it after <code>OPENROUTER_API_KEY=</code>. Never commit it.', { c: C.g })}
+          <p style="margin:4px 0 0 4px;font-size:21px;color:var(--tx2)">No camera? The same link is in the chat, or click the QR.</p>
+        </div>
+      </div>`)}`,
+  note: notes('Перед сетапом: показуємо QR на ключ OpenRouter (Google Doc). Даємо 20–30 секунд відсканувати. Дублюємо посилання в чат. Ключ спільний, із лімітом — у .env, не комітимо; після воркшопу ключ відкличемо.', 'Scan this for the OpenRouter key. The same link is in the chat. It goes into .env in a minute, never into git.'),
+}));
+
+slides.push(slide({
   tint: 'blue', block: 'Setup', time: '0:03–0:07', toc: 'Initial setup',
   body: `${head('Setup · 4 min · do it with me', 'Initial setup: <em>get the application running!</em>', C.g)}
       ${at(250, `
         ${row(1, C.g, 'Use this template', 'all branches · same name · Public', cmd('{{REPO_URL}}/generate', '', 'url'))}
         ${row(2, C.g, 'Clone', 'or open a Codespace', cmd('git clone https://github.com/&lt;you&gt;/ai-code-reviewer-workshop &amp;&amp; cd ai-code-reviewer-workshop'))}
-        ${row(3, C.g, 'Add the key', '{{OPENROUTER_KEY_NOTE}}, into .env', cmd('cp .env.example .env'))}
-        ${row(4, C.g, 'Install', '', cmd('npm ci'))}
-        ${row(5, C.g, 'Smoke test', 'offline, a recorded answer', cmd('npm run review:mock'))}
+        ${row(3, C.g, 'Get the key', 'scan the QR, or click', `<div class="cmd url"><code style="font-size:19px"><a href="https://{{OPENROUTER_KEY_DOC}}" target="_blank" rel="noopener">{{OPENROUTER_KEY_DOC}}</a></code></div>`)}
+        ${row(4, C.g, 'Add the key', 'paste after OPENROUTER_API_KEY=', cmd('cp .env.example .env'))}
+        ${row(5, C.g, 'Install + smoke test', 'offline, a recorded answer', cmd('npm ci &amp;&amp; npm run review:mock'))}
         ${row('+', 'rgba(255,255,255,.55)', 'Optional', 'prefer clicking? open the UI', cmd('npm run ui'))}
       `, { cls: 'turn setup' })}`,
-  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Template: галочка Include all branches, назву ai-code-reviewer-workshop не змінюємо і лишаємо Public — CI на кроці 3 бере рев’юер саме з <you>/ai-code-reviewer-workshop (не перейменовуємо). Ключ OpenRouter — у чаті; вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the chat. If review:mock prints findings, you are ready.'),
+  note: notes('Чотири хвилини. Усі команди копіюються кнопкою Copy. Після clone одразу cd у папку (команда вже з cd). Template: галочка Include all branches, назву ai-code-reviewer-workshop не змінюємо і лишаємо Public — CI на кроці 3 бере рев’юер саме з <you>/ai-code-reviewer-workshop (не перейменовуємо). Ключ OpenRouter — у Google-документі (QR на попередньому слайді, посилання ще й у чаті); вставляємо у .env після OPENROUTER_API_KEY=, не комітимо. Перевірка: review:mock має завершитись без помилок — це офлайн-запуск із записаною відповіддю моделі. Хто застряг — Codespace. Необов’язково: npm run ui відкриває локальний UI на localhost:3000 для тих, хто воліє клікати.', 'Copy each command with its button. The key is in the doc linked on the slide. If review:mock prints findings, you are ready.'),
 }));
 
 /* ================= STEP 1 ================= */
@@ -334,12 +352,12 @@ slides.push(slide({
       ${at(250, `
         ${row(1, C.y, 'Fork QuickBlog', '<u>untick</u> “main branch only”', cmd('{{QUICKBLOG_URL}}', '', 'url'))}
         ${row(2, C.y, 'Enable Actions', 'the Actions tab of your fork', cmd('“I understand my workflows, go ahead and enable them”', '', 'nocp'))}
-        ${row(3, C.y, 'Add your key', 'Secrets → Actions → New secret', cmd('OPENROUTER_API_KEY', ''))}
+        ${row(3, C.y, 'Add your key', 'Secrets → Actions → New secret · value: the key from the QR doc (setup slide)', cmd('OPENROUTER_API_KEY', ''))}
         ${row(4, C.y, 'Add the workflow', 'fork → Add file → Create new file; paste your yml', cmd('.github/workflows/ai-review.yml', ''))}
         ${row(5, C.y, 'Open the PR', 'analytics → main, in your fork', cmd('gh pr create -R &lt;you&gt;/quick-blog -B main -H analytics -t Analytics -b \"\"'))}
       `, { cls: 'turn setup' })}
       ${at(716, '<span class="warnb">Keep the analytics branch: untick “Copy the main branch only”.</span>', { width: 990 })}`,
-  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде ~2–3 хв (DeepSeek, три агенти паралельно): поки чекаємо — відкриваємо вкладку Actions і дивимось, як іде job.', 'Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and watch the Actions tab: the red check lands in 2–3 minutes.'),
+  note: notes('Підготовка форку QuickBlog. Критично: зняти галочку «Copy the main branch only», інакше гілки analytics не буде. Далі Actions → enable workflows. Ключ OpenRouter у GitHub: Settings → Secrets and variables → Actions → New repository secret, імʼя OPENROUTER_API_KEY, значення — той самий ключ, що в .env (з документа за QR на слайді сетапу) (без нього крок review впаде). Workflow додаємо прямо в GitHub: у форку Add file → Create new file, імʼя .github/workflows/ai-review.yml (кнопка Copy), вставляємо вміст свого examples/quick-blog-workflow.yml, commit у main. PR — командою gh з -R (інакше gh або веб-форма запропонують базою burnjohn/quick-blog замість вашого форку). CI іде ~2–3 хв (DeepSeek, три агенти паралельно): поки чекаємо — відкриваємо вкладку Actions і дивимось, як іде job.', 'Fork QuickBlog, untick copy-main-only, add the secret, create the workflow file in the GitHub UI, open the PR, and watch the Actions tab: the red check lands in 2–3 minutes.'),
 }));
 
 /* ================= STEP 4 ================= */

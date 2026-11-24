@@ -24,7 +24,10 @@ import { slides } from './slides.mjs';
 // ---- constants ----
 const REPO_URL = 'https://github.com/burnjohn/ai-code-reviewer-workshop';
 const QUICKBLOG_URL = 'https://github.com/burnjohn/quick-blog';
+const DECK_URL = 'https://claude.ai/artifact/6S1RA3TkVU7Gfozc42rvj6#no_universal_links'; // #no_universal_links: iOS opens it in the browser, not the Claude app // this deck as a Claude artifact (QR on the cover)
 const OPENROUTER_KEY_NOTE = 'key in the chat';
+// shown without https:// so it fits one line on the setup slide; links add the scheme
+const OPENROUTER_KEY_DOC = 'docs.google.com/document/d/19tl7IcCppnVxf0pnovKr2RiUVhAVn4IIjHlKLyPoLHQ';
 // specs come from the `main` branch; --worktree reads the files as they are on disk (uncommitted edits)
 const SPEC_REF = process.argv.includes('--worktree') ? null : 'main';
 
@@ -152,8 +155,8 @@ out = out.replace(/\{\{code:([^:}]+):([^:}]+)(?::(\d+)-(\d+))?\}\}/g, (_, ref, p
   if (a) src = src.split('\n').slice(+a - 1, +b).join('\n');
   return esc(src);
 });
-out = out.replaceAll('{{REPO_URL}}', REPO_URL).replaceAll('{{QUICKBLOG_URL}}', QUICKBLOG_URL).replaceAll('{{OPENROUTER_KEY_NOTE}}', OPENROUTER_KEY_NOTE);
-const left = out.match(/\{\{(?:code|prompt|lost|start|verify|expect|done|steps|specparts|specmd|specbody|specraw|spec|files|REPO_URL|QUICKBLOG_URL|OPENROUTER_KEY_NOTE)[^}]*\}\}/g);
+out = out.replaceAll('{{REPO_URL}}', REPO_URL).replaceAll('{{QUICKBLOG_URL}}', QUICKBLOG_URL).replaceAll('{{OPENROUTER_KEY_NOTE}}', OPENROUTER_KEY_NOTE).replaceAll('{{OPENROUTER_KEY_DOC}}', OPENROUTER_KEY_DOC).replaceAll('{{DECK_URL}}', DECK_URL);
+const left = out.match(/\{\{(?:code|prompt|lost|start|verify|expect|done|steps|specparts|specmd|specbody|specraw|spec|files|REPO_URL|QUICKBLOG_URL|OPENROUTER_KEY_NOTE|OPENROUTER_KEY_DOC|DECK_URL)[^}]*\}\}/g);
 if (left) throw new Error('build: unresolved placeholders: ' + [...new Set(left)].join(', '));
 
 const read = (f, enc = 'utf8') => readFileSync(join(dir, f), enc);
@@ -169,8 +172,10 @@ html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, href) => {
   return `<style>\n${css}\n</style>`;
 });
 html = html.replace(/(<img[^>]*\ssrc=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
-html = html.replace(/(<video[^>]*\ssrc=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) => `<script>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
+// Claude artifact: same page, videos stay as separate files under media/ (published next to the page)
+writeFileSync(join(dir, 'workshop.artifact.html'), html);
+html = html.replace(/(<video[^>]*\s(?:data-)?src=")([^"]+)(")/g, (m, a, u, b) => (isLocal(u) ? a + dataUri(u) + b : m));
 writeFileSync(join(dir, 'workshop.single.html'), html);
 console.log(`${DRAFT ? 'DRAFT' : 'STRICT'} build: index.html + workshop.single.html (${(html.length / 1024).toFixed(0)} KB), ${slides.length} slides`);
 if (pending.length) console.log(`PENDING (${pending.length}):\n  ` + pending.join('\n  '));

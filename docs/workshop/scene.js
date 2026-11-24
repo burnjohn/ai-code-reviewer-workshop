@@ -5,11 +5,11 @@
   const D=window.DECK, canvas=document.getElementById('gl');
   if(THREE.ColorManagement) THREE.ColorManagement.legacyMode=false; // hex colors are sRGB: convert to linear
   let renderer;
-  try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:!!(window.DECK&&window.DECK.QA)}); }
+  try{ renderer=new THREE.WebGLRenderer({canvas,antialias:!(D&&D.PHONE),powerPreference:D&&D.PHONE?'low-power':'high-performance',preserveDrawingBuffer:!!(window.DECK&&window.DECK.QA)}); }
   catch(e){ document.body.classList.add('nogl'); canvas.remove(); return; }
   // resolution is picked once from a pixel budget (~4.2 MP) and never changed while presenting:
   // switching it mid-animation is a visible jump. A 1080p projector gets 1.5x, a 5K monitor gets ~1x.
-  const pickDpr=()=>Math.max(.75,Math.min(devicePixelRatio,1.5,Math.sqrt(4.2e6/(innerWidth*innerHeight))));
+  const pickDpr=()=>D&&D.PHONE?1:Math.max(.75,Math.min(devicePixelRatio,1.5,Math.sqrt(4.2e6/(innerWidth*innerHeight))));
   let dpr=pickDpr(); renderer.setPixelRatio(dpr);
   renderer.outputEncoding=THREE.sRGBEncoding;
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=.95;
@@ -53,7 +53,7 @@
   const logo=new THREE.Group(); scene.add(logo); logo.visible=!!(D.started||D.QA);
   addEventListener('deck:start',()=>{ logo.visible=true; clock.getDelta(); });
   const arms=ARMS.map((a,k)=>{
-    const m=new THREE.Mesh(capGeo,mat(COLORS[a.c])); m.userData={...a,k,side:a.x<0?-1:1};
+    const m=new THREE.Mesh(capGeo,mat(COLORS[a.c])); m.userData={...a,k,side:a.x<0?-1:1,o:new THREE.Vector3(),v:new THREE.Vector3(),ro:0,rv:0}; // o/v, ro/rv: offset pushed in by the cursor
     // intro: start scattered
     const r=7+Math.random()*3, th=Math.random()*Math.PI*2, ph=(Math.random()-.5)*1.6;
     m.userData.from=new THREE.Vector3(Math.cos(th)*r,Math.sin(ph)*r*.6,-4-Math.random()*6);
@@ -125,7 +125,12 @@
   stars.frustumCulled=false; scene.add(stars);
   let warp=0; addEventListener('deck:slide',e=>{ if(e.detail.step===0||true){ warp=1;
     bits.forEach(b=>{ const u=b.userData; u.v.add(new THREE.Vector3((Math.random()-.5)*2.2,(Math.random()-.5)*2.2,(Math.random()-.5)*1.2)); u.spin.set((Math.random()-.5)*2,(Math.random()-.5)*2,(Math.random()-.5)*2); }); } });
-  const _w=new THREE.Vector3();
+  const _w=new THREE.Vector3(), _ro=new THREE.Vector3(), _rd=new THREE.Vector3(), _inv=new THREE.Matrix4();
+  // raw cursor (not the smoothed tilt value), tracked in 3D and Flat motion alike; touch taps don't count
+  const ptr={x:0,y:0,on:false};
+  addEventListener('pointermove',e=>{ if(e.pointerType==='touch') return; ptr.x=e.clientX/innerWidth*2-1; ptr.y=-(e.clientY/innerHeight*2-1); ptr.on=true; });
+  document.addEventListener('pointerleave',()=>ptr.on=false);
+  const PUSH_R=.8; // how close (in logo units, from an arm's axis) the cursor gets before the arm runs away
 
   /* ---------- presets per slide ---------- */
   const TINT={mix:['#57caff','#ff7daf','#ffd427','#5cdb6d'],blue:['#57caff','#4285f4','#a7e3ff','#5cdb6d'],
@@ -139,10 +144,10 @@
     const t=-baseCam.position.z/v.z; return baseCam.position.clone().add(v.multiplyScalar(t));
   }
   function worldPerStagePx(){ const r=D.stage.getBoundingClientRect(); const visH=2*Math.tan(THREE.MathUtils.degToRad(baseCam.fov/2))*baseCam.position.z; return visH/innerHeight*(r.width/1600); }
-  let spec=[1272,796,158,1];
+  let spec=[1272,796,158,1], pushable=false; // pushable: title slides only (big logo, not docked in the corner)
   function placeTarget(){ target.pos.copy(stageToWorld(spec[0],spec[1])); target.scale=spec[2]*worldPerStagePx()/W0; target.calm=spec[3]||0; }
   function applyPreset(slide,first){
-    const sp=(slide.dataset.logo||'dock');
+    const sp=(slide.dataset.logo||'dock'); pushable=sp!=='dock';
     spec=sp==='dock'?[1272,796,158,1]:sp.split(/\s+/).map(Number); placeTarget();
     target.tint=(TINT[slide.dataset.tint]||TINT.mix).map(c=>new THREE.Color(c));
     target.fieldRot=D.i*.22;
@@ -196,13 +201,28 @@
     logo.rotation.z=Math.sin(t*.35)*.04;
     logo.position.y+=Math.sin(t*1.1)*.0025*sway;
 
-    // arms: intro assembly, then breathing "< >"
+    // cursor on the logo's own plane, in logo units. Only on title slides, and only while the scene animates
+    // (Motion: 3D tilt or Flat); with Motion off there is no loop, just still frames
+    let cur=null;
+    if(pushable&&ptr.on&&!LITE&&!still&&!QA){ camera.updateMatrixWorld(); logo.updateMatrixWorld(); _inv.copy(logo.matrixWorld).invert();
+      _ro.copy(camera.position).applyMatrix4(_inv); _rd.set(ptr.x,ptr.y,.5).unproject(camera).applyMatrix4(_inv).sub(_ro);
+      if(Math.abs(_rd.z)>1e-3){ const s=(.11-_ro.z)/_rd.z; if(s>0) cur=_ro.addScaledVector(_rd,s); } }
+
+    // arms: intro assembly, then breathing "< >"; each one runs away from the cursor and springs back
     arms.forEach(a=>{ const u=a.userData;
       const p=Math.min(1,Math.max(0,(t-.25-u.k*.16)/1.5)), e=ease(p);
+      if(cur&&p>=1){ // push from the nearest point of the arm's axis; off-centre pushes also turn it
+        const ax=-Math.sin(a.rotation.z), ay=Math.cos(a.rotation.z), rx=cur.x-a.position.x, ry=cur.y-a.position.y;
+        const s=Math.max(-.6,Math.min(.6,rx*ax+ry*ay)); let nx=s*ax-rx, ny=s*ay-ry, d=Math.hypot(nx,ny);
+        if(d<PUSH_R){ if(d<1e-3){ nx=ay; ny=-ax; d=1; } const f=(1-Math.min(d,PUSH_R)/PUSH_R)*34*dt/d, fx=nx*f, fy=ny*f;
+          u.v.x+=fx; u.v.y+=fy; u.rv+=(s*ax*fy-s*ay*fx)*1.2; } }
+      u.v.addScaledVector(u.o,-9*dt); u.v.multiplyScalar(Math.pow(.03,dt)); u.o.addScaledVector(u.v,dt);
+      u.rv-=u.ro*12*dt; u.rv*=Math.pow(.03,dt); u.ro=Math.max(-1.2,Math.min(1.2,u.ro+u.rv*dt));
+      if(still||QA){ u.o.set(0,0,0); u.v.set(0,0,0); u.ro=u.rv=0; }
       const breathe=Math.sin(t*1.5)*.07*(1-calm*.6)+Math.max(0,Math.sin(t*.37))**8*.22*(1-calm); // pulse + an occasional wide "open"
       const hx=u.x+u.side*breathe, hy=u.y, hz=u.z+Math.sin(t*1.3+u.k)*.05;
-      a.position.set(u.from.x+(hx-u.from.x)*e,u.from.y+(hy-u.from.y)*e,u.from.z+(hz-u.from.z)*e);
-      const r=1-e; a.rotation.set(u.spin.x*r,u.spin.y*r,u.rz+u.spin.z*r);
+      a.position.set(u.from.x+(hx-u.from.x)*e+u.o.x,u.from.y+(hy-u.from.y)*e+u.o.y,u.from.z+(hz-u.from.z)*e);
+      const r=1-e; a.rotation.set(u.spin.x*r,u.spin.y*r,u.rz+u.spin.z*r+u.ro);
     });
     halo.material.opacity=.22+.06*Math.sin(t*1.7);
 
